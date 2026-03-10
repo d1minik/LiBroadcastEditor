@@ -1,0 +1,359 @@
+/* Global Overrides */
+body {
+    background: var(--bc-page-bg, #161512) !important;
+}
+
+/* Visibility Overrides */
+#top, .site-header {
+    display: var(--bc-display-header, flex) !important;
+}
+
+.mchat, .mchat-mod {
+    display: var(--bc-display-chat, flex) !important;
+}
+
+.analyse__tools {
+    display: var(--bc-display-move-table, flex) !important;
+    margin-left: var(--bc-eval-tools-shift, 0px) !important;
+}
+
+.relay-tour__side, .study__side {
+    display: var(--bc-display-side, flex) !important;
+}
+
+.analyse__clock {
+    display: var(--bc-display-clocks, flex) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    font-family: var(--bc-clock-font, inherit) !important;
+    border-radius: var(--bc-clock-radius, 3px) !important;
+    border: var(--bc-clock-border-width, 0px) solid var(--bc-clock-border-color, transparent) !important;
+    box-shadow: inset 0 0 0 var(--bc-clock-border-width, 0px) var(--bc-clock-border-color, transparent) !important;
+    outline: var(--bc-clock-border-width, 0px) solid var(--bc-clock-border-color, transparent) !important;
+    outline-offset: calc(var(--bc-clock-border-width, 0px) * -1) !important;
+    box-sizing: border-box !important;
+}
+
+.relay-board-player .analyse__clock {
+    border: var(--bc-clock-border-width, 0px) solid var(--bc-clock-border-color, transparent) !important;
+    box-shadow: inset 0 0 0 var(--bc-clock-border-width, 0px) var(--bc-clock-border-color, transparent) !important;
+    outline: var(--bc-clock-border-width, 0px) solid var(--bc-clock-border-color, transparent) !important;
+    outline-offset: calc(var(--bc-clock-border-width, 0px) * -1) !important;
+}
+
+.analyse__clock > i[data-icon] {
+    display: var(--bc-clock-stop-icon-display, inline-block) !important;
+}
+
+.relay-board-player-top .analyse__clock {
+    color: var(--bc-clock-black-color, inherit) !important;
+    background: var(--bc-clock-black-bg, inherit) !important;
+}
+
+.relay-board-player-bot .analyse__clock {
+    color: var(--bc-clock-white-color, inherit) !important;
+    background: var(--bc-clock-white-bg, inherit) !important;
+}
+
+.analyse__underboard {
+    display: var(--bc-display-underboard, block) !important;
+    margin-top: calc(
+        var(--bc-player-margin, 0px) + var(--bc-player-margin, 0px) + var(--bc-underboard-margin, 0px)
+    ) !important;
+}
+
+/* Custom Board Colors (main board only) */
+.analyse__board.main-board .cg-wrap,
+.analyse__board.main-board cg-container,
+.analyse__board.main-board cg-board {
+    border-radius: var(--bc-board-radius, 6px) !important;
+    overflow: hidden !important;
+}
+
+.analyse__board.main-board coords {
+    display: var(--bc-display-board-coords, initial) !important;
+}
+
+.analyse__board.main-board cg-resize {
+    display: var(--bc-display-board-resize-handle, initial) !important;
+}
+
+.bc-custom-board .analyse__board.main-board cg-board::before {
+    background-color: var(--bc-board-light, #f0d9b5) !important;
+    background-image: conic-gradient(
+        var(--bc-board-dark, #b58863) 0 25%,
+        var(--bc-board-light, #f0d9b5) 0 50%,
+        var(--bc-board-dark, #b58863) 0 75%,
+        var(--bc-board-light, #f0d9b5) 0
+    ) !important;
+    background-size: 25% 25% !important;
+    background-position: 0 0 !important;
+    background-repeat: repeat !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+/* Arrow Colors (main board only) */
+.analyse__board.main-board svg.cg-shapes defs marker[cgKey="g"] path {
+    fill: var(--bc-arrow-primary-color, #15781b) !important;
+}
+
+.analyse__board.main-board svg.cg-shapes defs marker[cgKey="r"] path {
+    fill: var(--bc-arrow-secondary-color, #882020) !important;
+}
+
+.analyse__board.main-board svg.cg-shapes defs marker[cgKey="b"] path {
+    fill: var(--bc-arrow-tertiary-color, #003088) !important;
+}
+
+.analyse__board.main-board svg.cg-shapes defs marker[cgKey="y"] path {
+    fill: var(--bc-arrow-quaternary-color, #e68f00) !important;
+}
+
+.analyse__board.main-board svg.cg-shapes [marker-end*="arrowhead-g"] {
+    stroke: var(--bc-arrow-primary-color, #15781b) !important;
+}
+
+.analyse__board.main-board svg.cg-shapes [marker-end*="arrowhead-r"] {
+    stroke: var(--bc-arrow-secondary-color, #882020) !important;
+}
+
+.analyse__board.main-board svg.cg-shapes [marker-end*="arrowhead-b"] {
+    stroke: var(--bc-arrow-tertiary-color, #003088) !important;
+}
+
+.analyse__board.main-board svg.cg-shapes [marker-end*="arrowhead-y"] {
+    stroke: var(--bc-arrow-quaternary-color, #e68f00) !important;
+}
+
+.analyse__board.main-board square.last-move {
+    background-color: var(--bc-last-move-color, rgba(155, 199, 0, 0.41)) !important;
+}
+
+/* Eval Bar */
+.analyse .eval-gauge {
+    display: var(--bc-display-eval, block) !important;
+    width: var(--bc-eval-width, 15px) !important;
+    min-width: var(--bc-eval-width, 15px) !important;
+    max-width: var(--bc-eval-width, 15px) !important;
+    justify-self: start !important;
+    border-radius: var(--bc-eval-radius, 0px) !important;
+    margin-left: var(--bc-eval-margin-left, 0px) !important;
+    margin-right: var(--bc-eval-margin-right, 0px) !important;
+    height: 100% !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+    filter: none !important;
+    background-image: none !important;
+}
+
+.analyse .eval-gauge::after {
+    border-radius: var(--bc-eval-radius, 0px) !important;
+    box-shadow: none !important;
+    filter: none !important;
+    background-image: none !important;
+}
+
+.analyse .eval-gauge::before {
+    box-shadow: none !important;
+    filter: none !important;
+    background-image: none !important;
+}
+
+.analyse .eval-gauge .black {
+    box-shadow: none !important;
+    filter: none !important;
+    background-image: none !important;
+}
+
+.analyse .eval-gauge tick {
+    display: var(--bc-eval-ticks-display, block) !important;
+}
+
+.analyse .eval-gauge tick.zero {
+    display: block !important;
+    border-bottom: var(--bc-eval-zero-thickness, 7px) solid var(--bc-eval-zero-color, var(--m-accent--fade-50)) !important;
+    margin-top: calc(var(--bc-eval-zero-thickness, 7px) / -2) !important;
+}
+
+.mini-game__gauge {
+    width: unset !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    flex: 0 0 4% !important;
+    margin: unset !important;
+    margin-left: 4px !important;
+    border-radius: 0 !important;
+}
+
+.analyse__board,
+.analyse .eval-gauge,
+.analyse__tools,
+.analyse__controls {
+    margin-top: var(--bc-player-margin, 0px) !important;
+}
+
+.relay-board-player-top {
+    top: calc(-45px - var(--bc-player-margin, 0px)) !important;
+}
+
+.relay-board-player-bot {
+    top: calc(var(---cg-height, 100%) + var(--bc-player-margin, 0px)) !important;
+}
+
+/* Profile Box */
+.relay-board-player {
+    border-radius: 0 !important;
+}
+
+.bc-hide-profile-bg .relay-board-player,
+.bc-hide-profile-bg .relay-board-player::before {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.bc-hide-profile-bg .relay-board-player::before {
+    display: none !important;
+}
+
+.relay-board-player__photo {
+    display: var(--bc-display-photo, block) !important;
+    border-radius: var(--bc-photo-radius, inherit) !important;
+}
+
+/* Typography & Colors Overrides */
+.relay-board-player .name {
+    font-size: var(--bc-name-size, inherit) !important;
+}
+
+.relay-board-player .name,
+.mini-game__user .name,
+.relay-game__player .name {
+    font-family: var(--bc-name-font, inherit) !important;
+}
+
+.relay-board-player .utitle {
+    color: var(--bc-title-color, inherit) !important;
+    font-size: var(--bc-title-size, inherit) !important;
+}
+
+.mini-game__user .utitle,
+.relay-game__player .utitle {
+    color: var(--bc-title-color, inherit) !important;
+}
+
+.relay-board-player .elo {
+    color: var(--bc-rating-color, inherit) !important;
+    display: var(--bc-display-rating, inline) !important;
+    font-size: var(--bc-rating-size, inherit) !important;
+}
+
+.mini-game__user .rating,
+.relay-game__player .rating {
+    color: var(--bc-rating-color, inherit) !important;
+    display: var(--bc-display-rating, inline) !important;
+}
+
+.relay-board-player .info-split {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.bc-layout-inline .relay-board-player .info-split {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.bc-layout-inline .relay-board-player .info-split > div {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.relay-board-player .info-secondary {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.bc-player-order-custom .relay-board-player .info-split {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0 !important;
+    flex-wrap: nowrap !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item:nth-child(2) {
+    margin-inline-start: var(--bc-player-order-gap-12, 6px) !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item:nth-child(3) {
+    margin-inline-start: var(--bc-player-order-gap-23, 6px) !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item:nth-child(4) {
+    margin-inline-start: var(--bc-player-order-gap-34, 6px) !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item .mini-game__flag {
+    margin-inline-end: 0 !important;
+    transform: translateY(0) !important;
+    vertical-align: middle !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item .utitle,
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item .name,
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item .elo {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item .elo {
+    transform: translateY(0) !important;
+}
+
+.relay-board-player .material {
+    display: var(--bc-display-material, flex) !important;
+}
+
+/* Flag Adjustments */
+img.mini-game__flag, 
+img.relay-game__flag,
+.fide-player .mini-game__flag,
+.relay-board-player .mini-game__flag {
+    display: var(--bc-display-flag, var(--bc-flag-display, inline-block)) !important;
+    border-radius: var(--bc-flag-radius, 3px) !important;
+    width: var(--bc-flag-width, 1em) !important;
+    height: var(--bc-flag-height, 1em) !important;
+    object-fit: cover !important;
+    vertical-align: text-bottom !important;
+    transform: translateY(15%) !important;
+}
+
+.bc-layout-inline img.mini-game__flag, 
+.bc-layout-inline img.relay-game__flag,
+.bc-layout-inline .fide-player .mini-game__flag,
+.bc-layout-inline .relay-board-player .mini-game__flag {
+    transform: translateY(15%) !important;
+}
+
+.bc-player-order-custom.bc-layout-inline .relay-board-player .info-split .mini-game__flag {
+    transform: translateY(0) !important;
+}
