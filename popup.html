@@ -11,6 +11,10 @@
       --text-main: #dbd8d5;
       --text-muted: #959390;
       --border: #403d39;
+      --subgroup-bg: rgba(70, 70, 70, 0.18);
+      --subgroup-border: rgba(138, 138, 138, 0.28);
+      --detail-bg: rgba(18, 18, 18, 0.3);
+      --detail-border: rgba(255, 255, 255, 0.08);
     }
     body { 
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
@@ -138,7 +142,7 @@
 
     .tab-nav {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 6px;
       margin-bottom: 12px;
     }
@@ -146,7 +150,7 @@
       display: flex;
       justify-content: center;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 0;
       flex-wrap: wrap;
     }
     .preset-btn {
@@ -196,21 +200,30 @@
       font-weight: 700;
       margin-bottom: 8px;
     }
-    .subgroup.warm { background: rgba(128, 62, 24, 0.22); border-color: rgba(214, 133, 62, 0.45); }
-    .subgroup.cool { background: rgba(28, 69, 100, 0.22); border-color: rgba(87, 153, 201, 0.45); }
-    .subgroup.green { background: rgba(37, 82, 55, 0.22); border-color: rgba(96, 181, 129, 0.45); }
-    .subgroup.gold { background: rgba(112, 95, 30, 0.22); border-color: rgba(197, 173, 83, 0.45); }
-    .subgroup.slate { background: rgba(74, 74, 74, 0.2); border-color: rgba(150, 150, 150, 0.45); }
+    .subgroup.warm,
+    .subgroup.cool,
+    .subgroup.green,
+    .subgroup.gold,
+    .subgroup.slate {
+      background: var(--subgroup-bg);
+      border-color: var(--subgroup-border);
+    }
     .subgroup .subgroup-title { color: var(--text-main); }
     .detail-box {
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--detail-border);
       border-radius: 6px;
       padding: 8px 9px;
-      background: rgba(16, 15, 14, 0.32);
+      background: var(--detail-bg);
       margin-bottom: 8px;
     }
     .detail-box:last-child {
       margin-bottom: 0;
+    }
+    .detail-box.is-disabled {
+      opacity: 0.48;
+    }
+    .detail-box.is-disabled .detail-box-title {
+      color: var(--text-muted);
     }
     .detail-box-title {
       font-size: 10px;
@@ -246,6 +259,12 @@
     }
     .setting-context-note.is-visible {
       display: block;
+    }
+    .subgroup-note {
+      margin: -2px 0 10px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.4;
     }
 
     .order-list {
@@ -295,18 +314,15 @@
 </head>
 <body>
   <h2>LiBroadcastEditor</h2>
-  <div class="preset-actions">
-    <button type="button" id="exportCssSettings" class="preset-btn">Export CSS</button>
-    <button type="button" id="importCssSettings" class="preset-btn">Import CSS</button>
-    <button type="button" id="exportStandaloneCss" class="preset-btn">Export Standalone CSS</button>
-    <button type="button" id="resetAllSettings" class="preset-btn">Reset Defaults</button>
-  </div>
 
   <div class="tab-nav" role="tablist" aria-label="Settings Tabs">
     <button type="button" class="tab-btn active" data-tab-target="globalLayout" aria-selected="true">Global &amp; Layout</button>
     <button type="button" class="tab-btn" data-tab-target="boardEval" aria-selected="false">Board &amp; Eval Bar</button>
     <button type="button" class="tab-btn" data-tab-target="playerProfile" aria-selected="false">Player Profile</button>
     <button type="button" class="tab-btn" data-tab-target="clockSettings" aria-selected="false">Clock Settings</button>
+    <button type="button" class="tab-btn" data-tab-target="liveboardSettings" aria-selected="false">Liveboard</button>
+    <button type="button" class="tab-btn" data-tab-target="templates" aria-selected="false">Templates</button>
+    <button type="button" class="tab-btn" data-tab-target="actions" aria-selected="false">Actions</button>
   </div>
 
   <div class="group tab-panel active" data-tab-panel="globalLayout">
@@ -570,6 +586,13 @@
         </div>
       </div>
       <div class="setting-row">
+        <span class="setting-label">Player Profile Height</span>
+        <div class="range-wrap">
+          <input type="range" id="playerProfileHeight" min="45" max="120" value="45">
+          <span class="range-val" id="playerProfileHeightVal">45</span>
+        </div>
+      </div>
+      <div class="setting-row">
         <span class="setting-label">Underboard Extra Margin</span>
         <div class="range-wrap">
           <input type="range" id="underboardMargin" min="0" max="200" value="0">
@@ -684,7 +707,7 @@
     <div class="subgroup slate">
       <div class="subgroup-title">Base</div>
       <div class="setting-row">
-        <span class="setting-label">Hide Clocks</span>
+        <span class="setting-label">Hide Main Board Clocks</span>
         <label class="switch"><input type="checkbox" id="hideClocks"><span class="slider"></span></label>
       </div>
       <div class="setting-row">
@@ -814,6 +837,204 @@
           <span class="range-val" id="clockBlackBgOpacityVal">100</span>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="group tab-panel" data-tab-panel="liveboardSettings">
+    <div class="group-title">Liveboard Settings</div>
+
+    <div class="subgroup slate">
+      <div class="subgroup-title">Visibility &amp; Surface</div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Liveboard Clocks</span>
+        <label class="switch"><input type="checkbox" id="hideLiveboardClocks"><span class="slider"></span></label>
+      </div>
+      <div class="setting-row" id="showLiveboardBgRow">
+        <span class="setting-label">Show Liveboard Background</span>
+        <label class="switch"><input type="checkbox" id="showLiveboardBg"><span class="slider"></span></label>
+      </div>
+      <div class="setting-row" id="liveboardBgColorRow">
+        <span class="setting-label">Liveboard Background Color</span>
+        <input type="color" id="liveboardBgColor" value="#2b2825">
+      </div>
+    </div>
+
+    <div class="subgroup cool">
+      <div class="subgroup-title">Inheritance</div>
+      <div class="subgroup-note">By default the liveboard inherits the main board player and clock styling and scales it down for the smaller layout.</div>
+      <div class="setting-row" id="useCustomLiveboardStyleRow">
+        <span class="setting-label">Use Custom Liveboard Styling</span>
+        <label class="switch"><input type="checkbox" id="useCustomLiveboardStyle"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <div class="subgroup cool">
+      <div class="subgroup-title">Scaling</div>
+      <div class="detail-box" data-liveboard-custom-control>
+        <div class="detail-box-title">Layout Scale</div>
+        <div class="setting-row">
+          <span class="setting-label">Overall Liveboard Scale</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardScale" min="55" max="140" value="82">
+            <span class="range-val" id="liveboardScaleVal">82</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Flag Scale</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardFlagScale" min="60" max="160" value="100">
+            <span class="range-val" id="liveboardFlagScaleVal">100</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Clock Scale</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardClockScale" min="60" max="160" value="100">
+            <span class="range-val" id="liveboardClockScaleVal">100</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Eval Bar</div>
+        <div class="setting-row">
+          <span class="setting-label">Liveboard Eval Bar Width</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardEvalBarWidth" min="1" max="12" value="4">
+            <span class="range-val" id="liveboardEvalBarWidthVal">4</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Liveboard Eval Bar Gap</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardEvalBarGap" min="0" max="20" value="4">
+            <span class="range-val" id="liveboardEvalBarGapVal">4</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup green">
+      <div class="subgroup-title">Typography</div>
+      <div class="detail-box" data-liveboard-custom-control>
+        <div class="detail-box-title">Player Font</div>
+        <div class="setting-row">
+          <span class="setting-label">Liveboard Player Font</span>
+          <div class="control-stack">
+            <select id="liveboardNameFontPreset" class="font-preset">
+              <option value="">Default (Main Board)</option>
+              <option value="Noto Sans">Noto Sans</option>
+              <option value="Roboto">Roboto</option>
+              <option value="System UI">System UI</option>
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Tahoma">Tahoma</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Lucida Console">Lucida Console</option>
+              <option value="__custom__">Custom</option>
+            </select>
+            <input type="text" id="liveboardNameFont" class="font-input" placeholder="Custom font family" spellcheck="false" autocomplete="off">
+            <div class="control-help">Leave empty to inherit the main board font.</div>
+            <div class="font-status" id="liveboardNameFontStatus" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="setting-row" id="liveboardNameFontWeightRow">
+          <span class="setting-label">Liveboard Player Font Weight</span>
+          <div class="control-stack">
+            <select id="liveboardNameFontWeight">
+              <option value="">Default</option>
+              <option value="100">100 Thin</option>
+              <option value="200">200 Extra Light</option>
+              <option value="300">300 Light</option>
+              <option value="400">400 Regular</option>
+              <option value="500">500 Medium</option>
+              <option value="600">600 Semibold</option>
+              <option value="700">700 Bold</option>
+              <option value="800">800 Extra Bold</option>
+              <option value="900">900 Black</option>
+            </select>
+            <div class="control-status" id="liveboardNameFontWeightStatus" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box" data-liveboard-custom-control>
+        <div class="detail-box-title">Clock Font</div>
+        <div class="setting-row">
+          <span class="setting-label">Liveboard Clock Font</span>
+          <div class="control-stack">
+            <select id="liveboardClockFontPreset" class="font-preset">
+              <option value="">Default (Main Board)</option>
+              <option value="Noto Sans">Noto Sans</option>
+              <option value="Roboto">Roboto</option>
+              <option value="System UI">System UI</option>
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Tahoma">Tahoma</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Lucida Console">Lucida Console</option>
+              <option value="__custom__">Custom</option>
+            </select>
+            <input type="text" id="liveboardClockFont" class="font-input" placeholder="Custom font family" spellcheck="false" autocomplete="off">
+            <div class="control-help">Leave empty to inherit the main board clock font.</div>
+            <div class="font-status" id="liveboardClockFontStatus" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="setting-row" id="liveboardClockFontWeightRow">
+          <span class="setting-label">Liveboard Clock Font Weight</span>
+          <div class="control-stack">
+            <select id="liveboardClockFontWeight">
+              <option value="">Default</option>
+              <option value="100">100 Thin</option>
+              <option value="200">200 Extra Light</option>
+              <option value="300">300 Light</option>
+              <option value="400">400 Regular</option>
+              <option value="500">500 Medium</option>
+              <option value="600">600 Semibold</option>
+              <option value="700">700 Bold</option>
+              <option value="800">800 Extra Bold</option>
+              <option value="900">900 Black</option>
+            </select>
+            <div class="control-status" id="liveboardClockFontWeightStatus" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup gold">
+      <div class="subgroup-title">Text Colors</div>
+      <div class="detail-box" data-liveboard-custom-control>
+        <div class="detail-box-title">Title</div>
+        <div class="setting-row">
+          <span class="setting-label">Liveboard Title Color</span>
+          <input type="color" id="liveboardTitleColor" value="#ffaa00">
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Liveboard Title Opacity</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardTitleOpacity" min="0" max="100" value="100">
+            <span class="range-val" id="liveboardTitleOpacityVal">100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="group tab-panel" data-tab-panel="templates">
+    <div class="group-title">Templates</div>
+  </div>
+
+  <div class="group tab-panel" data-tab-panel="actions">
+    <div class="group-title">Actions</div>
+    <div class="preset-actions">
+      <button type="button" id="exportCssSettings" class="preset-btn">Export CSS</button>
+      <button type="button" id="importCssSettings" class="preset-btn">Import CSS</button>
+      <button type="button" id="exportStandaloneCss" class="preset-btn">Export Standalone CSS</button>
+      <button type="button" id="resetAllSettings" class="preset-btn">Reset Defaults</button>
     </div>
   </div>
 

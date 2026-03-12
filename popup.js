@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideMoveTable: document.getElementById('hideMoveTable'),
     hideSide: document.getElementById('hideSide'),
     hideClocks: document.getElementById('hideClocks'),
+    hideLiveboardClocks: document.getElementById('hideLiveboardClocks'),
     hideUnderboard: document.getElementById('hideUnderboard'),
     hideEval: document.getElementById('hideEval'),
     hideBoardCoords: document.getElementById('hideBoardCoords'),
@@ -41,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     playerInfoLayout: document.getElementById('playerInfoLayout'),
     photoRadius: document.getElementById('photoRadius'),
     playerMargin: document.getElementById('playerMargin'),
+    playerProfileHeight: document.getElementById('playerProfileHeight'),
     underboardMargin: document.getElementById('underboardMargin'),
     pageBgColor: document.getElementById('pageBgColor'),
     nameFont: document.getElementById('nameFont'),
@@ -68,7 +70,21 @@ document.addEventListener("DOMContentLoaded", () => {
     clockBlackColor: document.getElementById('clockBlackColor'),
     clockBlackTextOpacity: document.getElementById('clockBlackTextOpacity'),
     clockBlackBgColor: document.getElementById('clockBlackBgColor'),
-    clockBlackBgOpacity: document.getElementById('clockBlackBgOpacity')
+    clockBlackBgOpacity: document.getElementById('clockBlackBgOpacity'),
+    useCustomLiveboardStyle: document.getElementById('useCustomLiveboardStyle'),
+    showLiveboardBg: document.getElementById('showLiveboardBg'),
+    liveboardBgColor: document.getElementById('liveboardBgColor'),
+    liveboardScale: document.getElementById('liveboardScale'),
+    liveboardFlagScale: document.getElementById('liveboardFlagScale'),
+    liveboardClockScale: document.getElementById('liveboardClockScale'),
+    liveboardEvalBarWidth: document.getElementById('liveboardEvalBarWidth'),
+    liveboardEvalBarGap: document.getElementById('liveboardEvalBarGap'),
+    liveboardNameFont: document.getElementById('liveboardNameFont'),
+    liveboardNameFontWeight: document.getElementById('liveboardNameFontWeight'),
+    liveboardTitleColor: document.getElementById('liveboardTitleColor'),
+    liveboardTitleOpacity: document.getElementById('liveboardTitleOpacity'),
+    liveboardClockFont: document.getElementById('liveboardClockFont'),
+    liveboardClockFontWeight: document.getElementById('liveboardClockFontWeight')
   };
 
   const resetButton = document.getElementById('resetProfileSizes');
@@ -82,19 +98,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const importCssFileInput = document.getElementById('importCssFileInput');
   const useCustomProfileBgColorRow = document.getElementById('useCustomProfileBgColorRow');
   const profileBgColorRow = document.getElementById('profileBgColorRow');
+  const showLiveboardBgRow = document.getElementById('showLiveboardBgRow');
+  const liveboardBgColorRow = document.getElementById('liveboardBgColorRow');
   const playerInfoLayoutRow = document.getElementById('playerInfoLayoutRow');
   const playerInfoLayoutLockNotice = document.getElementById('playerInfoLayoutLockNotice');
+  const liveboardCustomControlBlocks = Array.from(document.querySelectorAll('[data-liveboard-custom-control]'));
   const fontStatusElements = {
     nameFont: document.getElementById('nameFontStatus'),
-    clockFont: document.getElementById('clockFontStatus')
+    clockFont: document.getElementById('clockFontStatus'),
+    liveboardNameFont: document.getElementById('liveboardNameFontStatus'),
+    liveboardClockFont: document.getElementById('liveboardClockFontStatus')
   };
   const fontPresetElements = {
     nameFont: document.getElementById('nameFontPreset'),
-    clockFont: document.getElementById('clockFontPreset')
+    clockFont: document.getElementById('clockFontPreset'),
+    liveboardNameFont: document.getElementById('liveboardNameFontPreset'),
+    liveboardClockFont: document.getElementById('liveboardClockFontPreset')
   };
   const fontWeightStatusElements = {
     nameFontWeight: document.getElementById('nameFontWeightStatus'),
-    clockFontWeight: document.getElementById('clockFontWeightStatus')
+    clockFontWeight: document.getElementById('clockFontWeightStatus'),
+    liveboardNameFontWeight: document.getElementById('liveboardNameFontWeightStatus'),
+    liveboardClockFontWeight: document.getElementById('liveboardClockFontWeightStatus')
   };
 
   const ORDER_ITEMS = ['title', 'name', 'flag', 'rating'];
@@ -107,7 +132,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const DEFAULT_ORDER = ORDER_ITEMS.join(',');
   const FONT_WEIGHT_BY_FONT_KEY = {
     nameFont: 'nameFontWeight',
-    clockFont: 'clockFontWeight'
+    clockFont: 'clockFontWeight',
+    liveboardNameFont: 'liveboardNameFontWeight',
+    liveboardClockFont: 'liveboardClockFontWeight'
+  };
+  const FONT_UI_TOGGLE_BY_KEY = {
+    liveboardNameFont: 'useCustomLiveboardStyle',
+    liveboardClockFont: 'useCustomLiveboardStyle'
   };
   const FONT_WEIGHT_CONFIG = {
     nameFontWeight: {
@@ -117,17 +148,119 @@ document.addEventListener("DOMContentLoaded", () => {
     clockFontWeight: {
       fontKey: 'clockFont',
       row: document.getElementById('clockFontWeightRow')
+    },
+    liveboardNameFontWeight: {
+      fontKey: 'liveboardNameFont',
+      row: document.getElementById('liveboardNameFontWeightRow'),
+      toggleKey: 'useCustomLiveboardStyle'
+    },
+    liveboardClockFontWeight: {
+      fontKey: 'liveboardClockFont',
+      row: document.getElementById('liveboardClockFontWeightRow'),
+      toggleKey: 'useCustomLiveboardStyle'
     }
   };
   const FONT_WEIGHT_SAMPLE = 'Hamburgefonsiv 0123456789';
+  const DEFAULT_SETTINGS = {
+    hideHeader: false,
+    hideChat: false,
+    hideMoveTable: false,
+    hideSide: false,
+    hideClocks: false,
+    hideLiveboardClocks: false,
+    hideUnderboard: false,
+    hideEval: false,
+    hideBoardCoords: false,
+    hideBoardResizeHandle: false,
+    useCustomBoardColors: false,
+    boardLightColor: '#f0d9b5',
+    boardDarkColor: '#b58863',
+    arrowPrimaryColor: '#15781b',
+    arrowSecondaryColor: '#882020',
+    arrowTertiaryColor: '#003088',
+    arrowQuaternaryColor: '#e68f00',
+    boardRadius: '6',
+    lastMoveColor: '#9bc700',
+    lastMoveOpacity: '41',
+    evalBarWidth: '15',
+    evalBarRadius: '0',
+    evalMarginLeft: '0',
+    evalMarginRight: '0',
+    showEvalTicks: true,
+    evalZeroColor: '#d79b00',
+    evalZeroOpacity: '100',
+    evalZeroThickness: '7',
+    hideProfileBg: false,
+    useCustomProfileBgColor: false,
+    profileBgColor: '#403a34',
+    hidePhoto: false,
+    hideFlagOption: false,
+    hideRatingOption: false,
+    hideMaterial: false,
+    customPlayerOrder: false,
+    playerOrderList: DEFAULT_ORDER,
+    playerOrderGap12: '6',
+    playerOrderGap23: '6',
+    playerOrderGap34: '6',
+    playerInfoLayout: 'default',
+    photoRadius: '0',
+    playerMargin: '0',
+    playerProfileHeight: '45',
+    underboardMargin: '0',
+    pageBgColor: '#161512',
+    nameFont: '',
+    nameFontWeight: '',
+    profileItemSize: '14',
+    scaleTitle: true,
+    scaleName: true,
+    scaleRating: true,
+    scaleFlag: true,
+    titleColor: '#ffaa00',
+    titleOpacity: '100',
+    ratingColor: '#aaaaaa',
+    ratingOpacity: '100',
+    clockFont: '',
+    clockFontWeight: '',
+    clockRadius: '3',
+    clockBorderColor: '#000000',
+    clockBorderOpacity: '100',
+    clockBorderWidth: '0',
+    hideClockPauseIcon: false,
+    clockWhiteColor: '#ffffff',
+    clockWhiteTextOpacity: '100',
+    clockWhiteBgColor: '#262421',
+    clockWhiteBgOpacity: '100',
+    clockBlackColor: '#ffffff',
+    clockBlackTextOpacity: '100',
+    clockBlackBgColor: '#262421',
+    clockBlackBgOpacity: '100',
+    useCustomLiveboardStyle: false,
+    showLiveboardBg: true,
+    liveboardBgColor: '#2b2825',
+    liveboardScale: '82',
+    liveboardFlagScale: '100',
+    liveboardClockScale: '100',
+    liveboardEvalBarWidth: '4',
+    liveboardEvalBarGap: '4',
+    liveboardNameFont: '',
+    liveboardNameFontWeight: '',
+    liveboardTitleColor: '#ffaa00',
+    liveboardTitleOpacity: '100',
+    liveboardClockFont: '',
+    liveboardClockFontWeight: ''
+  };
 
   let draggedItem = null;
   let cachedContentCssText = null;
   let layoutLockNoticeTimer = 0;
   let fontWeightMeasureRoot = null;
 
-  const checkboxDefaultsTrue = new Set(['showEvalTicks', 'scaleTitle', 'scaleName', 'scaleRating', 'scaleFlag']);
-  const FONT_INPUT_KEYS = new Set(['nameFont', 'clockFont']);
+  const checkboxDefaultsTrue = new Set(
+    Object.entries(DEFAULT_SETTINGS)
+      .filter(([, value]) => value === true)
+      .map(([key]) => key)
+  );
+  const FONT_INPUT_KEYS = new Set(['nameFont', 'clockFont', 'liveboardNameFont', 'liveboardClockFont']);
   const GENERIC_FONT_FAMILIES = new Set([
     'serif',
     'sans-serif',
@@ -322,6 +455,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const status = fontStatusElements[key];
     if (!input || !status) return;
 
+    const toggleKey = FONT_UI_TOGGLE_BY_KEY[key];
+    if (toggleKey && elements[toggleKey] && !elements[toggleKey].checked) {
+      input.classList.remove('font-missing');
+      status.textContent = '';
+      return;
+    }
+
     const resolvedFont = resolveFontSetting(input.value);
     const { css, preferredFamily } = resolvedFont;
 
@@ -361,7 +501,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let enabled = true;
     let reason = '';
-    if (css) {
+    if (config.toggleKey && elements[config.toggleKey] && !elements[config.toggleKey].checked) {
+      enabled = false;
+      reason = '';
+    } else if (css) {
       if (!preferredFamily || !isFontInstalled(preferredFamily)) {
         enabled = false;
         reason = 'Weight options stay inactive until the selected font is available locally.';
@@ -562,9 +705,59 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const syncLiveboardBackgroundControls = () => {
+    if (!elements.showLiveboardBg || !elements.liveboardBgColor) return;
+
+    const backgroundVisible = Boolean(elements.showLiveboardBg.checked);
+
+    elements.liveboardBgColor.disabled = !backgroundVisible;
+
+    if (showLiveboardBgRow) {
+      showLiveboardBgRow.classList.remove('is-disabled');
+    }
+    if (liveboardBgColorRow) {
+      liveboardBgColorRow.classList.toggle('is-disabled', !backgroundVisible);
+    }
+  };
+
+  const syncLiveboardCustomControls = () => {
+    if (!elements.useCustomLiveboardStyle) return;
+
+    const customEnabled = Boolean(elements.useCustomLiveboardStyle.checked);
+    const liveboardFontKeys = ['liveboardNameFont', 'liveboardClockFont'];
+    const liveboardWeightKeys = ['liveboardNameFontWeight', 'liveboardClockFontWeight'];
+
+    liveboardCustomControlBlocks.forEach((block) => {
+      block.classList.toggle('is-disabled', !customEnabled);
+      block.querySelectorAll('input, select').forEach((control) => {
+        const isWeightControl = control === elements.liveboardNameFontWeight || control === elements.liveboardClockFontWeight;
+        if (!customEnabled) {
+          control.disabled = true;
+        } else if (!isWeightControl) {
+          control.disabled = false;
+        }
+      });
+    });
+
+    if (!customEnabled) {
+      liveboardFontKeys.forEach((key) => {
+        const input = elements[key];
+        const status = fontStatusElements[key];
+        if (input) input.classList.remove('font-missing');
+        if (status) status.textContent = '';
+      });
+      liveboardWeightKeys.forEach((key) => {
+        const status = fontWeightStatusElements[key];
+        if (status) status.textContent = '';
+      });
+    }
+  };
+
   const collectSettingsFromUi = () => {
     syncCustomOrderLayoutLock();
     syncProfileBackgroundControls();
+    syncLiveboardBackgroundControls();
+    syncLiveboardCustomControls();
     const settings = {};
     for (const key in elements) {
       if (elements[key].type === 'checkbox') {
@@ -582,22 +775,36 @@ document.addEventListener("DOMContentLoaded", () => {
     return settings;
   };
 
-  const getDefaultSettings = () => {
-    const defaults = {};
-    for (const key in elements) {
-      if (elements[key].type === 'checkbox') {
-        defaults[key] = checkboxDefaultsTrue.has(key);
-      } else if (typeof elements[key].defaultValue !== 'undefined') {
-        defaults[key] = elements[key].defaultValue;
-      } else {
-        defaults[key] = elements[key].value;
-      }
+  const getDefaultSettings = () => ({ ...DEFAULT_SETTINGS });
+
+  const clearTransientUiState = () => {
+    if (layoutLockNoticeTimer) {
+      clearTimeout(layoutLockNoticeTimer);
+      layoutLockNoticeTimer = 0;
     }
-    defaults.playerOrderList = DEFAULT_ORDER;
-    return defaults;
+    if (playerInfoLayoutLockNotice) {
+      playerInfoLayoutLockNotice.classList.remove('is-visible');
+      playerInfoLayoutLockNotice.textContent = '';
+    }
+    if (elements.playerInfoLayout) {
+      delete elements.playerInfoLayout.dataset.manualValue;
+      elements.playerInfoLayout.disabled = false;
+      elements.playerInfoLayout.removeAttribute('title');
+    }
+    if (playerInfoLayoutRow) {
+      playerInfoLayoutRow.classList.remove('is-locked', 'is-disabled');
+    }
+    for (const weightKey in FONT_WEIGHT_CONFIG) {
+      const control = elements[weightKey];
+      if (!control) continue;
+      delete control.dataset.manualValue;
+      control.disabled = false;
+      control.removeAttribute('title');
+    }
   };
 
   const applySettingsToUi = (settings) => {
+    clearTransientUiState();
     for (const key in elements) {
       if (settings[key] === undefined) continue;
       if (elements[key].type === 'checkbox') {
@@ -615,8 +822,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     syncCustomOrderLayoutLock();
     syncProfileBackgroundControls();
+    syncLiveboardBackgroundControls();
     updateSliderLabels();
     updateAllFontUiStates();
+    syncLiveboardCustomControls();
   };
 
   const toCssSettingName = (key) => key.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`);
@@ -716,6 +925,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (value === undefined || value === null || value === '') return;
       vars[name] = value;
     };
+    const showLiveboardBg =
+      settings.showLiveboardBg !== undefined
+        ? Boolean(settings.showLiveboardBg)
+        : !Boolean(settings.hideLiveboardBg);
 
     const defaultEvalWidth = parseNumber(defaults.evalBarWidth, 15);
     const evalWidth = parseNumber(settings.evalBarWidth, defaultEvalWidth);
@@ -732,13 +945,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const emSize = baseSize / 14;
     const resolvedNameFont = resolveFontCssValue(settings.nameFont);
     const resolvedClockFont = resolveFontCssValue(settings.clockFont);
+    const liveboardCustomEnabled = Boolean(settings.useCustomLiveboardStyle);
+    const liveboardScale = clamp(
+      parseNumber(
+        liveboardCustomEnabled ? settings.liveboardScale : defaults.liveboardScale,
+        parseNumber(defaults.liveboardScale, 82)
+      ),
+      55,
+      140
+    ) / 100;
+    const liveboardFlagScale = clamp(
+      parseNumber(
+        liveboardCustomEnabled ? settings.liveboardFlagScale : defaults.liveboardFlagScale,
+        parseNumber(defaults.liveboardFlagScale, 100)
+      ),
+      60,
+      160
+    ) / 100;
+    const liveboardClockScale = clamp(
+      parseNumber(
+        liveboardCustomEnabled ? settings.liveboardClockScale : defaults.liveboardClockScale,
+        parseNumber(defaults.liveboardClockScale, 100)
+      ),
+      60,
+      160
+    ) / 100;
+    const liveboardEvalBarWidth = clamp(
+      parseNumber(settings.liveboardEvalBarWidth, parseNumber(defaults.liveboardEvalBarWidth, 4)),
+      1,
+      12
+    );
+    const liveboardEvalBarGap = Math.max(
+      0,
+      parseNumber(settings.liveboardEvalBarGap, parseNumber(defaults.liveboardEvalBarGap, 4))
+    );
 
     setVar('--bc-page-bg', settings.pageBgColor || defaults.pageBgColor);
     setVar('--bc-display-header', settings.hideHeader ? 'none' : 'flex');
     setVar('--bc-display-liveboard', settings.hideChat ? 'none' : 'flex');
     setVar('--bc-display-move-table', settings.hideMoveTable ? 'none' : 'flex');
     setVar('--bc-display-side', settings.hideSide ? 'none' : 'flex');
-    setVar('--bc-display-clocks', settings.hideClocks ? 'none' : 'flex');
+    setVar('--bc-display-main-clocks', settings.hideClocks ? 'none' : 'flex');
+    setVar('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'inline-flex');
     setVar('--bc-display-underboard', settings.hideUnderboard ? 'none' : 'block');
     setVar('--bc-display-eval', settings.hideEval ? 'none' : 'block');
     setVar('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'flex');
@@ -781,6 +1029,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     setVar('--bc-photo-radius', `${Math.max(0, parseNumber(settings.photoRadius, parseNumber(defaults.photoRadius, 0)))}px`);
     setVar('--bc-player-margin', `${Math.max(0, parseNumber(settings.playerMargin, parseNumber(defaults.playerMargin, 0)))}px`);
+    const playerProfileHeight = Math.max(
+      45,
+      parseNumber(settings.playerProfileHeight, parseNumber(defaults.playerProfileHeight, 45))
+    );
+    setVar('--bc-player-profile-height', `${playerProfileHeight}px`);
+    setVar('--bc-player-profile-extra-height', `${Math.max(0, playerProfileHeight - 45)}px`);
 
     setVar('--bc-name-font', resolvedNameFont || 'inherit');
     if (settings.nameFontWeight) setVar('--bc-name-font-weight', settings.nameFontWeight);
@@ -821,6 +1075,37 @@ document.addEventListener("DOMContentLoaded", () => {
       '--bc-clock-black-bg',
       colorWithOpacity(settings.clockBlackBgColor, settings.clockBlackBgOpacity, defaults.clockBlackBgColor, defaults.clockBlackBgOpacity)
     );
+    if (!showLiveboardBg) {
+      setVar('--bc-liveboard-panel-bg', 'transparent');
+      setVar('--bc-liveboard-panel-border', '0');
+      setVar('--bc-liveboard-panel-shadow', 'none');
+      setVar('--bc-liveboard-panel-radius', '0');
+    } else {
+      setVar('--bc-liveboard-panel-bg', settings.liveboardBgColor || defaults.liveboardBgColor);
+    }
+    setVar('--bc-liveboard-scale', String(liveboardScale));
+    setVar('--bc-liveboard-flag-scale', String(liveboardFlagScale));
+    setVar('--bc-liveboard-clock-scale', String(liveboardClockScale));
+    setVar('--bc-liveboard-eval-width', `${liveboardEvalBarWidth}%`);
+    setVar('--bc-liveboard-eval-gap', `${liveboardEvalBarGap}px`);
+
+    if (liveboardCustomEnabled) {
+      const resolvedLiveboardNameFont = resolveFontCssValue(settings.liveboardNameFont);
+      const resolvedLiveboardClockFont = resolveFontCssValue(settings.liveboardClockFont);
+      if (resolvedLiveboardNameFont) setVar('--bc-liveboard-name-font', resolvedLiveboardNameFont);
+      if (settings.liveboardNameFontWeight) setVar('--bc-liveboard-name-font-weight', settings.liveboardNameFontWeight);
+      setVar(
+        '--bc-liveboard-title-color',
+        colorWithOpacity(
+          settings.liveboardTitleColor,
+          settings.liveboardTitleOpacity,
+          defaults.liveboardTitleColor,
+          defaults.liveboardTitleOpacity
+        )
+      );
+      if (resolvedLiveboardClockFont) setVar('--bc-liveboard-clock-font', resolvedLiveboardClockFont);
+      if (settings.liveboardClockFontWeight) setVar('--bc-liveboard-clock-font-weight', settings.liveboardClockFontWeight);
+    }
 
     const targetFlagSize = settings.scaleFlag ? `${emSize}em` : '1em';
     setVar('--bc-flag-width', targetFlagSize);
@@ -864,10 +1149,13 @@ document.addEventListener("DOMContentLoaded", () => {
 .relay-board-player .info-split {
   display: flex !important;
   flex-direction: row !important;
-  align-items: baseline !important;
+  align-items: center !important;
   justify-content: flex-start !important;
   gap: 0 !important;
   flex-wrap: nowrap !important;
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: center !important;
 }
 .relay-board-player .info-split > div,
 .relay-board-player .info-split .info-secondary {
@@ -877,14 +1165,12 @@ document.addEventListener("DOMContentLoaded", () => {
   order: ${orderMap.title};
   margin-inline-start: ${orderMap.title === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.title === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.title === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
   display: inline-flex !important;
-  align-items: baseline !important;
+  align-items: center !important;
   line-height: 1 !important;
 }
 .relay-board-player .info-split .name {
   order: ${orderMap.name};
   margin-inline-start: ${orderMap.name === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.name === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.name === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
-  display: inline-flex !important;
-  align-items: baseline !important;
   line-height: 1 !important;
 }
 .relay-board-player .info-split .mini-game__flag {
@@ -893,14 +1179,14 @@ document.addEventListener("DOMContentLoaded", () => {
   margin-inline-end: 0 !important;
   width: calc(var(--bc-flag-width, 1em) * 0.9) !important;
   height: calc(var(--bc-flag-height, 1em) * 0.9) !important;
-  transform: translateY(15%) !important;
-  vertical-align: text-bottom !important;
+  transform: none !important;
+  vertical-align: middle !important;
 }
 .relay-board-player .info-split .elo {
   order: ${orderMap.rating};
   margin-inline-start: ${orderMap.rating === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.rating === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.rating === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
   display: inline-flex !important;
-  align-items: baseline !important;
+  align-items: center !important;
   line-height: 1 !important;
   font-size: var(--bc-rating-size, 0.9em) !important;
 }`);
@@ -908,14 +1194,24 @@ document.addEventListener("DOMContentLoaded", () => {
       rules.push(`
 .relay-board-player .info-split {
   flex-direction: row !important;
-  align-items: baseline !important;
+  align-items: center !important;
   justify-content: flex-start !important;
   gap: 8px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: center !important;
 }
 .relay-board-player .info-split > div {
   display: flex !important;
-  align-items: baseline !important;
+  align-items: center !important;
   gap: 4px !important;
+}
+.relay-board-player .info-secondary {
+  align-items: center !important;
+}
+.relay-board-player .mini-game__flag {
+  transform: none !important;
+  vertical-align: middle !important;
 }`);
     }
 
@@ -987,7 +1283,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const parseCssSettings = (cssText) => {
     const parsed = {};
-    const knownKeys = new Set([...Object.keys(elements), 'playerOrderList']);
+    const knownKeys = new Set([...Object.keys(elements), 'playerOrderList', 'hideLiveboardBg', 'useCustomLiveboardBgColor']);
+    const legacySettings = {};
     const declarationRegex = /--bc-setting-([a-z0-9-]+)\s*:\s*([^;]+);/gi;
     let match = declarationRegex.exec(cssText);
 
@@ -1002,6 +1299,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (key in elements && elements[key].type === 'checkbox') {
         const boolValue = parseBooleanSetting(rawValue);
         if (boolValue !== null) parsed[key] = boolValue;
+      } else if (key === 'hideLiveboardBg' || key === 'useCustomLiveboardBgColor') {
+        const boolValue = parseBooleanSetting(rawValue);
+        if (boolValue !== null) legacySettings[key] = boolValue;
       } else if (key === 'playerOrderList') {
         parsed[key] = sanitizeOrderValue(parseQuotedValue(rawValue)).join(',');
       } else {
@@ -1009,6 +1309,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       match = declarationRegex.exec(cssText);
+    }
+
+    if (parsed.showLiveboardBg === undefined && legacySettings.hideLiveboardBg !== undefined) {
+      parsed.showLiveboardBg = !legacySettings.hideLiveboardBg;
+    }
+
+    if (legacySettings.useCustomLiveboardBgColor === false) {
+      parsed.liveboardBgColor = getDefaultSettings().liveboardBgColor;
     }
 
     return parsed;
@@ -1047,8 +1355,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveAndNotify = () => {
     syncCustomOrderLayoutLock();
     syncProfileBackgroundControls();
+    syncLiveboardBackgroundControls();
     updateSliderLabels();
     updateAllFontUiStates();
+    syncLiveboardCustomControls();
     const settings = collectSettingsFromUi();
 
     chrome.storage.sync.set(settings, () => {
@@ -1060,18 +1370,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  chrome.storage.sync.get([...Object.keys(elements), 'playerOrderList'], (result) => {
-    const initialSettings = {};
-    for (const key in elements) {
-      if (result[key] !== undefined) {
-        initialSettings[key] = result[key];
-      } else if (elements[key].type === 'checkbox') {
-        initialSettings[key] = checkboxDefaultsTrue.has(key);
+  chrome.storage.sync.get(
+    [...Object.keys(elements), 'playerOrderList', 'hideLiveboardBg', 'useCustomLiveboardBgColor'],
+    (result) => {
+      const initialSettings = { ...getDefaultSettings() };
+      for (const key in elements) {
+        if (result[key] !== undefined) {
+          initialSettings[key] = result[key];
+        }
       }
+      if (result.showLiveboardBg === undefined && result.hideLiveboardBg !== undefined) {
+        initialSettings.showLiveboardBg = !Boolean(result.hideLiveboardBg);
+      }
+      if (result.showLiveboardBg === undefined && result.useCustomLiveboardBgColor === false) {
+        initialSettings.liveboardBgColor = getDefaultSettings().liveboardBgColor;
+      }
+      initialSettings.playerOrderList = result.playerOrderList || DEFAULT_ORDER;
+      applySettingsToUi(initialSettings);
     }
-    initialSettings.playerOrderList = result.playerOrderList || DEFAULT_ORDER;
-    applySettingsToUi(initialSettings);
-  });
+  );
 
   resetButton.addEventListener('click', () => {
     elements.profileItemSize.value = 14;
@@ -1162,6 +1479,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(() => {
       updateAllFontUiStates();
+      syncLiveboardCustomControls();
     }).catch(() => {});
   }
 

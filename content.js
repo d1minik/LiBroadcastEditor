@@ -4,6 +4,7 @@ const defaultSettings = {
   hideMoveTable: false,
   hideSide: false,
   hideClocks: false,
+  hideLiveboardClocks: false,
   hideUnderboard: false,
   hideEval: false,
   hideBoardCoords: false,
@@ -41,6 +42,7 @@ const defaultSettings = {
   playerInfoLayout: 'default',
   photoRadius: '0',
   playerMargin: '0',
+  playerProfileHeight: '45',
   underboardMargin: '0',
   pageBgColor: '#161512',
   nameFont: '',
@@ -68,7 +70,21 @@ const defaultSettings = {
   clockBlackColor: '#ffffff',
   clockBlackTextOpacity: '100',
   clockBlackBgColor: '#262421',
-  clockBlackBgOpacity: '100'
+  clockBlackBgOpacity: '100',
+  useCustomLiveboardStyle: false,
+  showLiveboardBg: true,
+  liveboardBgColor: '#2b2825',
+  liveboardScale: '82',
+  liveboardFlagScale: '100',
+  liveboardClockScale: '100',
+  liveboardEvalBarWidth: '4',
+  liveboardEvalBarGap: '4',
+  liveboardNameFont: '',
+  liveboardNameFontWeight: '',
+  liveboardTitleColor: '#ffaa00',
+  liveboardTitleOpacity: '100',
+  liveboardClockFont: '',
+  liveboardClockFontWeight: ''
 };
 
 const PLAYER_ORDER_ITEMS = ['title', 'name', 'flag', 'rating'];
@@ -309,6 +325,10 @@ function applySettings(settings) {
   const mergedSettings = { ...defaultSettings, ...latestSettings, ...settings };
   latestSettings = mergedSettings;
   settings = mergedSettings;
+  const showLiveboardBg =
+    settings.showLiveboardBg !== undefined
+      ? Boolean(settings.showLiveboardBg)
+      : !Boolean(settings.hideLiveboardBg);
 
   const root = document.documentElement;
   const parseNumber = (value, fallback) => {
@@ -341,6 +361,13 @@ function applySettings(settings) {
     const alpha = clamp(opacity, 0, 1);
     return `rgba(${parsedColor.r}, ${parsedColor.g}, ${parsedColor.b}, ${alpha})`;
   };
+  const setOrRemoveProperty = (name, value) => {
+    if (value === undefined || value === null || value === '') {
+      root.style.removeProperty(name);
+    } else {
+      root.style.setProperty(name, value);
+    }
+  };
 
   // Global Settings
   root.style.setProperty('--bc-page-bg', settings.pageBgColor);
@@ -350,7 +377,8 @@ function applySettings(settings) {
   root.style.setProperty('--bc-display-liveboard', settings.hideChat ? 'none' : '');
   root.style.setProperty('--bc-display-move-table', settings.hideMoveTable ? 'none' : '');
   root.style.setProperty('--bc-display-side', settings.hideSide ? 'none' : '');
-  root.style.setProperty('--bc-display-clocks', settings.hideClocks ? 'none' : '');
+  root.style.setProperty('--bc-display-main-clocks', settings.hideClocks ? 'none' : 'flex');
+  root.style.setProperty('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'inline-flex');
   root.style.setProperty('--bc-display-underboard', settings.hideUnderboard ? 'none' : '');
   root.style.setProperty('--bc-display-eval', settings.hideEval ? 'none' : '');
   root.style.setProperty('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'flex');
@@ -375,6 +403,40 @@ function applySettings(settings) {
   const clockWhiteBgOpacity = parseOpacity(settings.clockWhiteBgOpacity, parseNumber(defaultSettings.clockWhiteBgOpacity, 100));
   const clockBlackTextOpacity = parseOpacity(settings.clockBlackTextOpacity, parseNumber(defaultSettings.clockBlackTextOpacity, 100));
   const clockBlackBgOpacity = parseOpacity(settings.clockBlackBgOpacity, parseNumber(defaultSettings.clockBlackBgOpacity, 100));
+  const liveboardCustomEnabled = Boolean(settings.useCustomLiveboardStyle);
+  const liveboardScale = clamp(
+    parseNumber(
+      liveboardCustomEnabled ? settings.liveboardScale : defaultSettings.liveboardScale,
+      parseNumber(defaultSettings.liveboardScale, 82)
+    ),
+    55,
+    140
+  ) / 100;
+  const liveboardFlagScale = clamp(
+    parseNumber(
+      liveboardCustomEnabled ? settings.liveboardFlagScale : defaultSettings.liveboardFlagScale,
+      parseNumber(defaultSettings.liveboardFlagScale, 100)
+    ),
+    60,
+    160
+  ) / 100;
+  const liveboardClockScale = clamp(
+    parseNumber(
+      liveboardCustomEnabled ? settings.liveboardClockScale : defaultSettings.liveboardClockScale,
+      parseNumber(defaultSettings.liveboardClockScale, 100)
+    ),
+    60,
+    160
+  ) / 100;
+  const liveboardEvalBarWidth = clamp(
+    parseNumber(settings.liveboardEvalBarWidth, parseNumber(defaultSettings.liveboardEvalBarWidth, 4)),
+    1,
+    12
+  );
+  const liveboardEvalBarGap = Math.max(
+    0,
+    parseNumber(settings.liveboardEvalBarGap, parseNumber(defaultSettings.liveboardEvalBarGap, 4))
+  );
   const evalToolsShift = settings.hideEval
     ? 0
     : Math.max(0, (evalWidth - defaultEvalWidth) + evalMarginLeft + evalMarginRight);
@@ -435,6 +497,12 @@ function applySettings(settings) {
   if (settings.playerMargin !== undefined) {
     root.style.setProperty('--bc-player-margin', `${settings.playerMargin}px`);
   }
+  const playerProfileHeight = Math.max(
+    45,
+    parseNumber(settings.playerProfileHeight, parseNumber(defaultSettings.playerProfileHeight, 45))
+  );
+  root.style.setProperty('--bc-player-profile-height', `${playerProfileHeight}px`);
+  root.style.setProperty('--bc-player-profile-extra-height', `${Math.max(0, playerProfileHeight - 45)}px`);
 
   const useCustomPlayerOrder = Boolean(settings.customPlayerOrder);
 
@@ -535,6 +603,45 @@ function applySettings(settings) {
     '--bc-clock-black-bg',
     colorWithOpacity(settings.clockBlackBgColor, clockBlackBgOpacity, defaultSettings.clockBlackBgColor)
   );
+  if (!showLiveboardBg) {
+    root.style.setProperty('--bc-liveboard-panel-bg', 'transparent');
+    root.style.setProperty('--bc-liveboard-panel-border', '0');
+    root.style.setProperty('--bc-liveboard-panel-shadow', 'none');
+    root.style.setProperty('--bc-liveboard-panel-radius', '0');
+  } else {
+    root.style.setProperty('--bc-liveboard-panel-bg', settings.liveboardBgColor || defaultSettings.liveboardBgColor);
+    root.style.removeProperty('--bc-liveboard-panel-border');
+    root.style.removeProperty('--bc-liveboard-panel-shadow');
+    root.style.removeProperty('--bc-liveboard-panel-radius');
+  }
+  root.style.setProperty('--bc-liveboard-scale', String(liveboardScale));
+  root.style.setProperty('--bc-liveboard-flag-scale', String(liveboardFlagScale));
+  root.style.setProperty('--bc-liveboard-clock-scale', String(liveboardClockScale));
+  root.style.setProperty('--bc-liveboard-eval-width', `${liveboardEvalBarWidth}%`);
+  root.style.setProperty('--bc-liveboard-eval-gap', `${liveboardEvalBarGap}px`);
+
+  const resolvedLiveboardNameFont = resolveFontCssValue(settings.liveboardNameFont);
+  const resolvedLiveboardClockFont = resolveFontCssValue(settings.liveboardClockFont);
+  if (liveboardCustomEnabled) {
+    setOrRemoveProperty('--bc-liveboard-name-font', resolvedLiveboardNameFont);
+    setOrRemoveProperty('--bc-liveboard-name-font-weight', settings.liveboardNameFontWeight);
+    root.style.setProperty(
+      '--bc-liveboard-title-color',
+      colorWithOpacity(
+        settings.liveboardTitleColor,
+        parseOpacity(settings.liveboardTitleOpacity, parseNumber(defaultSettings.liveboardTitleOpacity, 100)),
+        defaultSettings.liveboardTitleColor
+      )
+    );
+    setOrRemoveProperty('--bc-liveboard-clock-font', resolvedLiveboardClockFont);
+    setOrRemoveProperty('--bc-liveboard-clock-font-weight', settings.liveboardClockFontWeight);
+  } else {
+    root.style.removeProperty('--bc-liveboard-name-font');
+    root.style.removeProperty('--bc-liveboard-name-font-weight');
+    root.style.removeProperty('--bc-liveboard-title-color');
+    root.style.removeProperty('--bc-liveboard-clock-font');
+    root.style.removeProperty('--bc-liveboard-clock-font-weight');
+  }
 
   // Flag sizing
   const targetFlagSize = settings.scaleFlag ? `${emSize}em` : '1em';
@@ -543,8 +650,15 @@ function applySettings(settings) {
 }
 
 // Initial load
-chrome.storage.sync.get(defaultSettings, (settings) => {
-  applySettings(settings);
+chrome.storage.sync.get({ ...defaultSettings, showLiveboardBg: null, hideLiveboardBg: null }, (settings) => {
+  const normalizedSettings = { ...defaultSettings, ...settings };
+  normalizedSettings.showLiveboardBg =
+    settings.showLiveboardBg === null
+      ? settings.hideLiveboardBg === null
+        ? defaultSettings.showLiveboardBg
+        : !Boolean(settings.hideLiveboardBg)
+      : Boolean(settings.showLiveboardBg);
+  applySettings(normalizedSettings);
 });
 
 // Listen for updates from popup
