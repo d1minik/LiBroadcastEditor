@@ -76,6 +76,16 @@ document.addEventListener("DOMContentLoaded", () => {
     useCustomLiveboardStyle: document.getElementById('useCustomLiveboardStyle'),
     showLiveboardBg: document.getElementById('showLiveboardBg'),
     liveboardBgColor: document.getElementById('liveboardBgColor'),
+    useCustomLiveboardBoardColors: document.getElementById('useCustomLiveboardBoardColors'),
+    liveboardBoardLightColor: document.getElementById('liveboardBoardLightColor'),
+    liveboardBoardDarkColor: document.getElementById('liveboardBoardDarkColor'),
+    liveboardPhotoRadius: document.getElementById('liveboardPhotoRadius'),
+    liveboardBoardRadius: document.getElementById('liveboardBoardRadius'),
+    liveboardEvalBarRadius: document.getElementById('liveboardEvalBarRadius'),
+    liveboardClockRadius: document.getElementById('liveboardClockRadius'),
+    liveboardTextScale: document.getElementById('liveboardTextScale'),
+    liveboardNameScale: document.getElementById('liveboardNameScale'),
+    liveboardTitleScale: document.getElementById('liveboardTitleScale'),
     liveboardScale: document.getElementById('liveboardScale'),
     liveboardFlagScale: document.getElementById('liveboardFlagScale'),
     liveboardClockScale: document.getElementById('liveboardClockScale'),
@@ -83,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     liveboardEvalBarGap: document.getElementById('liveboardEvalBarGap'),
     liveboardNameFont: document.getElementById('liveboardNameFont'),
     liveboardNameFontWeight: document.getElementById('liveboardNameFontWeight'),
+    liveboardTitleFont: document.getElementById('liveboardTitleFont'),
     liveboardTitleColor: document.getElementById('liveboardTitleColor'),
     liveboardTitleOpacity: document.getElementById('liveboardTitleOpacity'),
     liveboardClockFont: document.getElementById('liveboardClockFont'),
@@ -102,6 +113,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const profileBgColorRow = document.getElementById('profileBgColorRow');
   const showLiveboardBgRow = document.getElementById('showLiveboardBgRow');
   const liveboardBgColorRow = document.getElementById('liveboardBgColorRow');
+  const useCustomLiveboardBoardColorsRow = document.getElementById('useCustomLiveboardBoardColorsRow');
+  const liveboardBoardLightColorRow = document.getElementById('liveboardBoardLightColorRow');
+  const liveboardBoardDarkColorRow = document.getElementById('liveboardBoardDarkColorRow');
   const playerInfoLayoutRow = document.getElementById('playerInfoLayoutRow');
   const playerInfoLayoutLockNotice = document.getElementById('playerInfoLayoutLockNotice');
   const playerOrderGapLabelElements = {
@@ -114,12 +128,14 @@ document.addEventListener("DOMContentLoaded", () => {
     nameFont: document.getElementById('nameFontStatus'),
     clockFont: document.getElementById('clockFontStatus'),
     liveboardNameFont: document.getElementById('liveboardNameFontStatus'),
+    liveboardTitleFont: document.getElementById('liveboardTitleFontStatus'),
     liveboardClockFont: document.getElementById('liveboardClockFontStatus')
   };
   const fontPresetElements = {
     nameFont: document.getElementById('nameFontPreset'),
     clockFont: document.getElementById('clockFontPreset'),
     liveboardNameFont: document.getElementById('liveboardNameFontPreset'),
+    liveboardTitleFont: document.getElementById('liveboardTitleFontPreset'),
     liveboardClockFont: document.getElementById('liveboardClockFontPreset')
   };
   const fontWeightStatusElements = {
@@ -154,10 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
     liveboardNameFont: 'liveboardNameFontWeight',
     liveboardClockFont: 'liveboardClockFontWeight'
   };
-  const FONT_UI_TOGGLE_BY_KEY = {
-    liveboardNameFont: 'useCustomLiveboardStyle',
-    liveboardClockFont: 'useCustomLiveboardStyle'
-  };
+  const FONT_UI_TOGGLE_BY_KEY = {};
   const FONT_WEIGHT_CONFIG = {
     nameFontWeight: {
       fontKey: 'nameFont',
@@ -257,6 +270,16 @@ document.addEventListener("DOMContentLoaded", () => {
     useCustomLiveboardStyle: false,
     showLiveboardBg: true,
     liveboardBgColor: '#2b2825',
+    useCustomLiveboardBoardColors: false,
+    liveboardBoardLightColor: '#f0d9b5',
+    liveboardBoardDarkColor: '#b58863',
+    liveboardPhotoRadius: '',
+    liveboardBoardRadius: '',
+    liveboardEvalBarRadius: '',
+    liveboardClockRadius: '',
+    liveboardTextScale: '100',
+    liveboardNameScale: '100',
+    liveboardTitleScale: '100',
     liveboardScale: '82',
     liveboardFlagScale: '100',
     liveboardClockScale: '100',
@@ -264,6 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
     liveboardEvalBarGap: '4',
     liveboardNameFont: '',
     liveboardNameFontWeight: '',
+    liveboardTitleFont: '',
     liveboardTitleColor: '#ffaa00',
     liveboardTitleOpacity: '100',
     liveboardClockFont: '',
@@ -280,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter(([, value]) => value === true)
       .map(([key]) => key)
   );
-  const FONT_INPUT_KEYS = new Set(['nameFont', 'clockFont', 'liveboardNameFont', 'liveboardClockFont']);
+  const FONT_INPUT_KEYS = new Set(['nameFont', 'clockFont', 'liveboardNameFont', 'liveboardTitleFont', 'liveboardClockFont']);
   const GENERIC_FONT_FAMILIES = new Set([
     'serif',
     'sans-serif',
@@ -769,43 +793,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const syncLiveboardCustomControls = () => {
-    if (!elements.useCustomLiveboardStyle) return;
-
-    const customEnabled = Boolean(elements.useCustomLiveboardStyle.checked);
-    const liveboardFontKeys = ['liveboardNameFont', 'liveboardClockFont'];
-    const liveboardWeightKeys = ['liveboardNameFontWeight', 'liveboardClockFontWeight'];
-
-    liveboardCustomControlBlocks.forEach((block) => {
-      block.classList.toggle('is-disabled', !customEnabled);
-      block.querySelectorAll('input, select').forEach((control) => {
-        const isWeightControl = control === elements.liveboardNameFontWeight || control === elements.liveboardClockFontWeight;
-        if (!customEnabled) {
-          control.disabled = true;
-        } else if (!isWeightControl) {
-          control.disabled = false;
-        }
-      });
-    });
-
-    if (!customEnabled) {
-      liveboardFontKeys.forEach((key) => {
-        const input = elements[key];
-        const status = fontStatusElements[key];
-        if (input) input.classList.remove('font-missing');
-        if (status) status.textContent = '';
-      });
-      liveboardWeightKeys.forEach((key) => {
-        const status = fontWeightStatusElements[key];
-        if (status) status.textContent = '';
-      });
+  const syncLiveboardBoardColorControls = () => {
+    if (
+      !elements.useCustomLiveboardBoardColors ||
+      !elements.liveboardBoardLightColor ||
+      !elements.liveboardBoardDarkColor
+    ) {
+      return;
     }
+
+    const customEnabled = Boolean(elements.useCustomLiveboardBoardColors.checked);
+    elements.liveboardBoardLightColor.disabled = !customEnabled;
+    elements.liveboardBoardDarkColor.disabled = !customEnabled;
+
+    if (useCustomLiveboardBoardColorsRow) {
+      useCustomLiveboardBoardColorsRow.classList.remove('is-disabled');
+    }
+    if (liveboardBoardLightColorRow) {
+      liveboardBoardLightColorRow.classList.toggle('is-disabled', !customEnabled);
+    }
+    if (liveboardBoardDarkColorRow) {
+      liveboardBoardDarkColorRow.classList.toggle('is-disabled', !customEnabled);
+    }
+  };
+
+  const syncLiveboardCustomControls = () => {
+    return;
   };
 
   const collectSettingsFromUi = () => {
     syncCustomOrderLayoutLock();
     syncProfileBackgroundControls();
     syncLiveboardBackgroundControls();
+    syncLiveboardBoardColorControls();
     syncLiveboardCustomControls();
     const settings = {};
     for (const key in elements) {
@@ -872,6 +892,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncCustomOrderLayoutLock();
     syncProfileBackgroundControls();
     syncLiveboardBackgroundControls();
+    syncLiveboardBoardColorControls();
     updateSliderLabels();
     updateAllFontUiStates();
     syncLiveboardCustomControls();
@@ -974,11 +995,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (value === undefined || value === null || value === '') return;
       vars[name] = value;
     };
-    const showLiveboardBg =
-      settings.showLiveboardBg !== undefined
-        ? Boolean(settings.showLiveboardBg)
-        : !Boolean(settings.hideLiveboardBg);
-
     const defaultEvalWidth = parseNumber(defaults.evalBarWidth, 15);
     const evalWidth = parseNumber(settings.evalBarWidth, defaultEvalWidth);
     const evalRadius = Math.max(0, parseNumber(settings.evalBarRadius, parseNumber(defaults.evalBarRadius, 0)));
@@ -994,40 +1010,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const emSize = baseSize / 14;
     const resolvedNameFont = resolveFontCssValue(settings.nameFont);
     const resolvedClockFont = resolveFontCssValue(settings.clockFont);
-    const liveboardCustomEnabled = Boolean(settings.useCustomLiveboardStyle);
-    const liveboardScale = clamp(
-      parseNumber(
-        liveboardCustomEnabled ? settings.liveboardScale : defaults.liveboardScale,
-        parseNumber(defaults.liveboardScale, 82)
-      ),
-      55,
-      140
-    ) / 100;
-    const liveboardFlagScale = clamp(
-      parseNumber(
-        liveboardCustomEnabled ? settings.liveboardFlagScale : defaults.liveboardFlagScale,
-        parseNumber(defaults.liveboardFlagScale, 100)
-      ),
-      60,
-      160
-    ) / 100;
-    const liveboardClockScale = clamp(
-      parseNumber(
-        liveboardCustomEnabled ? settings.liveboardClockScale : defaults.liveboardClockScale,
-        parseNumber(defaults.liveboardClockScale, 100)
-      ),
-      60,
-      160
-    ) / 100;
+    const liveboardScale = clamp(parseNumber(defaults.liveboardScale, 82), 55, 140) / 100;
+    const liveboardFlagScale = clamp(parseNumber(defaults.liveboardFlagScale, 100), 60, 160) / 100;
+    const liveboardTextScale = clamp(parseNumber(settings.liveboardTextScale, parseNumber(defaults.liveboardTextScale, 100)), 60, 180) / 100;
+    const liveboardNameScale = clamp(parseNumber(settings.liveboardNameScale, parseNumber(defaults.liveboardNameScale, 100)), 60, 180) / 100;
+    const liveboardTitleScale = clamp(parseNumber(settings.liveboardTitleScale, parseNumber(defaults.liveboardTitleScale, 100)), 60, 180) / 100;
+    const liveboardClockScale = clamp(parseNumber(settings.liveboardClockScale, parseNumber(defaults.liveboardClockScale, 100)), 60, 180) / 100;
     const liveboardEvalBarWidth = clamp(
       parseNumber(settings.liveboardEvalBarWidth, parseNumber(defaults.liveboardEvalBarWidth, 4)),
       1,
       12
     );
-    const liveboardEvalBarGap = Math.max(
-      0,
-      parseNumber(settings.liveboardEvalBarGap, parseNumber(defaults.liveboardEvalBarGap, 4))
-    );
+    const liveboardEvalBarGap = Math.max(0, parseNumber(defaults.liveboardEvalBarGap, 4));
 
     setVar('--bc-page-bg', settings.pageBgColor || defaults.pageBgColor);
     setVar('--bc-display-header', settings.hideHeader ? 'none' : 'flex');
@@ -1035,7 +1029,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setVar('--bc-display-move-table', settings.hideMoveTable ? 'none' : 'flex');
     setVar('--bc-display-side', settings.hideSide ? 'none' : 'flex');
     setVar('--bc-display-main-clocks', settings.hideClocks ? 'none' : 'flex');
-    setVar('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'inline-flex');
+    setVar('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'flex');
     setVar('--bc-display-liveboard-photo', settings.hideLiveboardPhoto ? 'none' : 'var(--bc-display-photo, block)');
     setVar('--bc-display-liveboard-flag', settings.hideLiveboardFlag ? 'none' : 'var(--bc-display-flag, inline-block)');
     setVar('--bc-display-underboard', settings.hideUnderboard ? 'none' : 'block');
@@ -1126,36 +1120,47 @@ document.addEventListener("DOMContentLoaded", () => {
       '--bc-clock-black-bg',
       colorWithOpacity(settings.clockBlackBgColor, settings.clockBlackBgOpacity, defaults.clockBlackBgColor, defaults.clockBlackBgOpacity)
     );
-    if (!showLiveboardBg) {
-      setVar('--bc-liveboard-panel-bg', 'transparent');
-      setVar('--bc-liveboard-panel-border', '0');
-      setVar('--bc-liveboard-panel-shadow', 'none');
-      setVar('--bc-liveboard-panel-radius', '0');
-    } else {
-      setVar('--bc-liveboard-panel-bg', settings.liveboardBgColor || defaults.liveboardBgColor);
-    }
+    setVar('--bc-liveboard-panel-bg', defaults.liveboardBgColor);
     setVar('--bc-liveboard-scale', String(liveboardScale));
     setVar('--bc-liveboard-flag-scale', String(liveboardFlagScale));
     setVar('--bc-liveboard-clock-scale', String(liveboardClockScale));
+    setVar('--bc-liveboard-text-scale', String(liveboardTextScale));
+    setVar('--bc-liveboard-name-scale', String(liveboardNameScale));
+    setVar('--bc-liveboard-title-scale', String(liveboardTitleScale));
     setVar('--bc-liveboard-eval-width', `${liveboardEvalBarWidth}%`);
     setVar('--bc-liveboard-eval-gap', `${liveboardEvalBarGap}px`);
+    const resolvedLiveboardNameFont = resolveFontCssValue(settings.liveboardNameFont);
+    const resolvedLiveboardTitleFont = resolveFontCssValue(settings.liveboardTitleFont);
+    if (resolvedLiveboardNameFont) setVar('--bc-liveboard-name-font', resolvedLiveboardNameFont);
+    if (resolvedLiveboardTitleFont) setVar('--bc-liveboard-title-font', resolvedLiveboardTitleFont);
+    if (settings.useCustomLiveboardBoardColors) {
+      setVar('--bc-liveboard-board-light', settings.liveboardBoardLightColor || defaults.liveboardBoardLightColor);
+      setVar('--bc-liveboard-board-dark', settings.liveboardBoardDarkColor || defaults.liveboardBoardDarkColor);
+    }
 
-    if (liveboardCustomEnabled) {
-      const resolvedLiveboardNameFont = resolveFontCssValue(settings.liveboardNameFont);
-      const resolvedLiveboardClockFont = resolveFontCssValue(settings.liveboardClockFont);
-      if (resolvedLiveboardNameFont) setVar('--bc-liveboard-name-font', resolvedLiveboardNameFont);
-      if (settings.liveboardNameFontWeight) setVar('--bc-liveboard-name-font-weight', settings.liveboardNameFontWeight);
-      setVar(
-        '--bc-liveboard-title-color',
-        colorWithOpacity(
-          settings.liveboardTitleColor,
-          settings.liveboardTitleOpacity,
-          defaults.liveboardTitleColor,
-          defaults.liveboardTitleOpacity
-        )
-      );
-      if (resolvedLiveboardClockFont) setVar('--bc-liveboard-clock-font', resolvedLiveboardClockFont);
-      if (settings.liveboardClockFontWeight) setVar('--bc-liveboard-clock-font-weight', settings.liveboardClockFontWeight);
+    const liveboardPhotoRadius = String(settings.liveboardPhotoRadius || '').trim() === ''
+      ? NaN
+      : parseNumber(settings.liveboardPhotoRadius, NaN);
+    const liveboardBoardRadius = String(settings.liveboardBoardRadius || '').trim() === ''
+      ? NaN
+      : parseNumber(settings.liveboardBoardRadius, NaN);
+    const liveboardEvalBarRadius = String(settings.liveboardEvalBarRadius || '').trim() === ''
+      ? NaN
+      : parseNumber(settings.liveboardEvalBarRadius, NaN);
+    const liveboardClockRadius = String(settings.liveboardClockRadius || '').trim() === ''
+      ? NaN
+      : parseNumber(settings.liveboardClockRadius, NaN);
+    if (Number.isFinite(liveboardPhotoRadius) && liveboardPhotoRadius >= 0) {
+      setVar('--bc-liveboard-photo-radius', `${liveboardPhotoRadius}px`);
+    }
+    if (Number.isFinite(liveboardBoardRadius) && liveboardBoardRadius >= 0) {
+      setVar('--bc-liveboard-board-radius', `${liveboardBoardRadius}px`);
+    }
+    if (Number.isFinite(liveboardEvalBarRadius) && liveboardEvalBarRadius >= 0) {
+      setVar('--bc-liveboard-eval-radius', `${liveboardEvalBarRadius}px`);
+    }
+    if (Number.isFinite(liveboardClockRadius) && liveboardClockRadius >= 0) {
+      setVar('--bc-liveboard-clock-radius', `${liveboardClockRadius}px`);
     }
 
     const targetFlagSize = settings.scaleFlag ? `${emSize}em` : '1em';
@@ -1187,6 +1192,25 @@ document.addEventListener("DOMContentLoaded", () => {
 }`);
     }
 
+    if (settings.useCustomBoardColors || settings.useCustomLiveboardBoardColors) {
+      rules.push(`
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__board cg-board::before,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__board cg-board::before {
+  background-color: var(--bc-liveboard-board-light, var(--bc-board-light, #f0d9b5)) !important;
+  background-image: conic-gradient(
+    var(--bc-liveboard-board-dark, var(--bc-board-dark, #b58863)) 0 25%,
+    var(--bc-liveboard-board-light, var(--bc-board-light, #f0d9b5)) 0 50%,
+    var(--bc-liveboard-board-dark, var(--bc-board-dark, #b58863)) 0 75%,
+    var(--bc-liveboard-board-light, var(--bc-board-light, #f0d9b5)) 0
+  ) !important;
+  background-size: 25% 25% !important;
+  background-position: 0 0 !important;
+  background-repeat: repeat !important;
+  filter: none !important;
+  opacity: 1 !important;
+}`);
+    }
+
     if (settings.customPlayerOrder) {
       const order = customOrder;
       const expandedOrder = expandOrderValue(order.join(','));
@@ -1201,7 +1225,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const untitledNameGap = gapMap.title || '0';
 
       rules.push(`
-.relay-board-player .info-split {
+.analyse__board.main-board .relay-board-player .info-split {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -1212,28 +1236,28 @@ document.addEventListener("DOMContentLoaded", () => {
   min-height: 0 !important;
   align-self: center !important;
 }
-.relay-board-player .info-split > div,
-.relay-board-player .info-split .info-secondary {
+.analyse__board.main-board .relay-board-player .info-split > div,
+.analyse__board.main-board .relay-board-player .info-split .info-secondary {
   display: contents !important;
 }
-.relay-board-player .info-split .utitle {
+.analyse__board.main-board .relay-board-player .info-split .utitle {
   order: ${orderMap.title};
   margin-inline-start: ${gapMap.title || '0'} !important;
   display: inline-flex !important;
   align-items: center !important;
-  line-height: 1 !important;
+  line-height: 1.12 !important;
 }
-.relay-board-player .info-split .name {
+.analyse__board.main-board .relay-board-player .info-split .name {
   order: ${orderMap.name};
   margin-inline-start: ${gapMap.name || '0'} !important;
   display: inline-flex !important;
   align-items: center !important;
-  line-height: 1 !important;
+  line-height: 1.15 !important;
 }
-.relay-board-player .info-split:not(:has(.utitle)) .name {
+.analyse__board.main-board .relay-board-player .info-split:not(:has(.utitle)) .name {
   margin-inline-start: ${untitledNameGap} !important;
 }
-.relay-board-player .info-split .mini-game__flag {
+.analyse__board.main-board .relay-board-player .info-split .mini-game__flag {
   order: ${orderMap.flag};
   margin-inline-start: ${gapMap.flag || '0'} !important;
   margin-inline-end: 0 !important;
@@ -1242,17 +1266,17 @@ document.addEventListener("DOMContentLoaded", () => {
   transform: none !important;
   vertical-align: middle !important;
 }
-.relay-board-player .info-split .elo {
+.analyse__board.main-board .relay-board-player .info-split .elo {
   order: ${orderMap.rating};
   margin-inline-start: ${gapMap.rating || '0'} !important;
   display: inline-flex !important;
   align-items: center !important;
-  line-height: 1 !important;
+  line-height: 1.12 !important;
   font-size: var(--bc-rating-size, 0.9em) !important;
 }`);
     } else if (settings.playerInfoLayout === 'inline') {
       rules.push(`
-.relay-board-player .info-split {
+.analyse__board.main-board .relay-board-player .info-split {
   flex-direction: row !important;
   align-items: center !important;
   justify-content: flex-start !important;
@@ -1261,15 +1285,15 @@ document.addEventListener("DOMContentLoaded", () => {
   min-height: 0 !important;
   align-self: center !important;
 }
-.relay-board-player .info-split > div {
+.analyse__board.main-board .relay-board-player .info-split > div {
   display: flex !important;
   align-items: center !important;
   gap: 4px !important;
 }
-.relay-board-player .info-secondary {
+.analyse__board.main-board .relay-board-player .info-secondary {
   align-items: center !important;
 }
-.relay-board-player .mini-game__flag {
+.analyse__board.main-board .relay-board-player .mini-game__flag {
   transform: none !important;
   vertical-align: middle !important;
 }`);
@@ -1416,6 +1440,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncCustomOrderLayoutLock();
     syncProfileBackgroundControls();
     syncLiveboardBackgroundControls();
+    syncLiveboardBoardColorControls();
     updateSliderLabels();
     updateAllFontUiStates();
     syncLiveboardCustomControls();

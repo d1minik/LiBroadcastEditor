@@ -76,6 +76,16 @@ const defaultSettings = {
   useCustomLiveboardStyle: false,
   showLiveboardBg: true,
   liveboardBgColor: '#2b2825',
+  useCustomLiveboardBoardColors: false,
+  liveboardBoardLightColor: '#f0d9b5',
+  liveboardBoardDarkColor: '#b58863',
+  liveboardPhotoRadius: '',
+  liveboardBoardRadius: '',
+  liveboardEvalBarRadius: '',
+  liveboardClockRadius: '',
+  liveboardTextScale: '100',
+  liveboardNameScale: '100',
+  liveboardTitleScale: '100',
   liveboardScale: '82',
   liveboardFlagScale: '100',
   liveboardClockScale: '100',
@@ -83,6 +93,7 @@ const defaultSettings = {
   liveboardEvalBarGap: '4',
   liveboardNameFont: '',
   liveboardNameFontWeight: '',
+  liveboardTitleFont: '',
   liveboardTitleColor: '#ffaa00',
   liveboardTitleOpacity: '100',
   liveboardClockFont: '',
@@ -301,7 +312,7 @@ function applyCustomOrderToInfoSplit(infoSplit, order) {
 }
 
 function applyPlayerOrderLayout(settings) {
-  const infoSplits = document.querySelectorAll('.relay-board-player .info-split');
+  const infoSplits = document.querySelectorAll('.analyse__board.main-board .relay-board-player .info-split');
   if (!infoSplits.length) return;
 
   const order = resolvePlayerOrder(settings);
@@ -368,8 +379,29 @@ function createLiveboardProfileWrap(sourceProfile, wrapClass) {
 
   const clone = sourceProfile.cloneNode(true);
   clone.classList.add('bc-liveboard-profile');
+  normalizeLiveboardProfileClone(clone);
   wrap.appendChild(clone);
   return wrap;
+}
+
+function normalizeLiveboardProfileClone(profileClone) {
+  const infoSplit = profileClone.querySelector('.info-split');
+  if (!infoSplit) return;
+
+  const titleEl = infoSplit.querySelector('.utitle');
+  const nameEl = infoSplit.querySelector('.name');
+  const flagEl = infoSplit.querySelector('.mini-game__flag');
+  const primary = document.createElement('div');
+  const secondary = document.createElement('div');
+  secondary.className = 'info-secondary';
+
+  if (titleEl) primary.appendChild(titleEl);
+  if (nameEl) primary.appendChild(nameEl);
+  if (flagEl) secondary.appendChild(flagEl);
+
+  infoSplit.innerHTML = '';
+  if (primary.childNodes.length) infoSplit.appendChild(primary);
+  if (secondary.childNodes.length) infoSplit.appendChild(secondary);
 }
 
 function syncLiveboardProfileWrap(liveboardGame, sourceProfile, wrapClass, beforeNode) {
@@ -510,7 +542,7 @@ function applySettings(settings) {
   root.style.setProperty('--bc-display-move-table', settings.hideMoveTable ? 'none' : '');
   root.style.setProperty('--bc-display-side', settings.hideSide ? 'none' : '');
   root.style.setProperty('--bc-display-main-clocks', settings.hideClocks ? 'none' : 'flex');
-  root.style.setProperty('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'inline-flex');
+  root.style.setProperty('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'flex');
   root.style.setProperty(
     '--bc-display-liveboard-photo',
     settings.hideLiveboardPhoto ? 'none' : 'var(--bc-display-photo, block)'
@@ -543,40 +575,34 @@ function applySettings(settings) {
   const clockWhiteBgOpacity = parseOpacity(settings.clockWhiteBgOpacity, parseNumber(defaultSettings.clockWhiteBgOpacity, 100));
   const clockBlackTextOpacity = parseOpacity(settings.clockBlackTextOpacity, parseNumber(defaultSettings.clockBlackTextOpacity, 100));
   const clockBlackBgOpacity = parseOpacity(settings.clockBlackBgOpacity, parseNumber(defaultSettings.clockBlackBgOpacity, 100));
-  const liveboardCustomEnabled = Boolean(settings.useCustomLiveboardStyle);
-  const liveboardScale = clamp(
-    parseNumber(
-      liveboardCustomEnabled ? settings.liveboardScale : defaultSettings.liveboardScale,
-      parseNumber(defaultSettings.liveboardScale, 82)
-    ),
-    55,
-    140
-  ) / 100;
-  const liveboardFlagScale = clamp(
-    parseNumber(
-      liveboardCustomEnabled ? settings.liveboardFlagScale : defaultSettings.liveboardFlagScale,
-      parseNumber(defaultSettings.liveboardFlagScale, 100)
-    ),
+  const liveboardScale = clamp(parseNumber(defaultSettings.liveboardScale, 82), 55, 140) / 100;
+  const liveboardFlagScale = clamp(parseNumber(defaultSettings.liveboardFlagScale, 100), 60, 160) / 100;
+  const liveboardTextScale = clamp(
+    parseNumber(settings.liveboardTextScale, parseNumber(defaultSettings.liveboardTextScale, 100)),
     60,
-    160
+    180
+  ) / 100;
+  const liveboardNameScale = clamp(
+    parseNumber(settings.liveboardNameScale, parseNumber(defaultSettings.liveboardNameScale, 100)),
+    60,
+    180
+  ) / 100;
+  const liveboardTitleScale = clamp(
+    parseNumber(settings.liveboardTitleScale, parseNumber(defaultSettings.liveboardTitleScale, 100)),
+    60,
+    180
   ) / 100;
   const liveboardClockScale = clamp(
-    parseNumber(
-      liveboardCustomEnabled ? settings.liveboardClockScale : defaultSettings.liveboardClockScale,
-      parseNumber(defaultSettings.liveboardClockScale, 100)
-    ),
+    parseNumber(settings.liveboardClockScale, parseNumber(defaultSettings.liveboardClockScale, 100)),
     60,
-    160
+    180
   ) / 100;
   const liveboardEvalBarWidth = clamp(
     parseNumber(settings.liveboardEvalBarWidth, parseNumber(defaultSettings.liveboardEvalBarWidth, 4)),
     1,
     12
   );
-  const liveboardEvalBarGap = Math.max(
-    0,
-    parseNumber(settings.liveboardEvalBarGap, parseNumber(defaultSettings.liveboardEvalBarGap, 4))
-  );
+  const liveboardEvalBarGap = Math.max(0, parseNumber(defaultSettings.liveboardEvalBarGap, 4));
   const evalToolsShift = settings.hideEval
     ? 0
     : Math.max(0, (evalWidth - defaultEvalWidth) + evalMarginLeft + evalMarginRight);
@@ -601,6 +627,11 @@ function applySettings(settings) {
       root.classList.add('bc-custom-board');
   } else {
       root.classList.remove('bc-custom-board');
+  }
+  if (settings.useCustomLiveboardBoardColors) {
+      root.classList.add('bc-custom-liveboard-board');
+  } else {
+      root.classList.remove('bc-custom-liveboard-board');
   }
   const boardRadius = Math.max(0, parseNumber(settings.boardRadius, parseNumber(defaultSettings.boardRadius, 6)));
   root.style.setProperty('--bc-board-radius', `${boardRadius}px`);
@@ -743,45 +774,64 @@ function applySettings(settings) {
     '--bc-clock-black-bg',
     colorWithOpacity(settings.clockBlackBgColor, clockBlackBgOpacity, defaultSettings.clockBlackBgColor)
   );
-  if (!showLiveboardBg) {
-    root.style.setProperty('--bc-liveboard-panel-bg', 'transparent');
-    root.style.setProperty('--bc-liveboard-panel-border', '0');
-    root.style.setProperty('--bc-liveboard-panel-shadow', 'none');
-    root.style.setProperty('--bc-liveboard-panel-radius', '0');
-  } else {
-    root.style.setProperty('--bc-liveboard-panel-bg', settings.liveboardBgColor || defaultSettings.liveboardBgColor);
-    root.style.removeProperty('--bc-liveboard-panel-border');
-    root.style.removeProperty('--bc-liveboard-panel-shadow');
-    root.style.removeProperty('--bc-liveboard-panel-radius');
-  }
+  root.style.setProperty('--bc-liveboard-panel-bg', defaultSettings.liveboardBgColor);
+  root.style.removeProperty('--bc-liveboard-panel-border');
+  root.style.removeProperty('--bc-liveboard-panel-shadow');
+  root.style.removeProperty('--bc-liveboard-panel-radius');
   root.style.setProperty('--bc-liveboard-scale', String(liveboardScale));
   root.style.setProperty('--bc-liveboard-flag-scale', String(liveboardFlagScale));
   root.style.setProperty('--bc-liveboard-clock-scale', String(liveboardClockScale));
+  root.style.setProperty('--bc-liveboard-text-scale', String(liveboardTextScale));
+  root.style.setProperty('--bc-liveboard-name-scale', String(liveboardNameScale));
+  root.style.setProperty('--bc-liveboard-title-scale', String(liveboardTitleScale));
   root.style.setProperty('--bc-liveboard-eval-width', `${liveboardEvalBarWidth}%`);
   root.style.setProperty('--bc-liveboard-eval-gap', `${liveboardEvalBarGap}px`);
 
   const resolvedLiveboardNameFont = resolveFontCssValue(settings.liveboardNameFont);
-  const resolvedLiveboardClockFont = resolveFontCssValue(settings.liveboardClockFont);
-  if (liveboardCustomEnabled) {
-    setOrRemoveProperty('--bc-liveboard-name-font', resolvedLiveboardNameFont);
-    setOrRemoveProperty('--bc-liveboard-name-font-weight', settings.liveboardNameFontWeight);
-    root.style.setProperty(
-      '--bc-liveboard-title-color',
-      colorWithOpacity(
-        settings.liveboardTitleColor,
-        parseOpacity(settings.liveboardTitleOpacity, parseNumber(defaultSettings.liveboardTitleOpacity, 100)),
-        defaultSettings.liveboardTitleColor
-      )
-    );
-    setOrRemoveProperty('--bc-liveboard-clock-font', resolvedLiveboardClockFont);
-    setOrRemoveProperty('--bc-liveboard-clock-font-weight', settings.liveboardClockFontWeight);
-  } else {
-    root.style.removeProperty('--bc-liveboard-name-font');
-    root.style.removeProperty('--bc-liveboard-name-font-weight');
-    root.style.removeProperty('--bc-liveboard-title-color');
-    root.style.removeProperty('--bc-liveboard-clock-font');
-    root.style.removeProperty('--bc-liveboard-clock-font-weight');
-  }
+  const resolvedLiveboardTitleFont = resolveFontCssValue(settings.liveboardTitleFont);
+  setOrRemoveProperty('--bc-liveboard-name-font', resolvedLiveboardNameFont);
+  setOrRemoveProperty('--bc-liveboard-title-font', resolvedLiveboardTitleFont);
+  setOrRemoveProperty(
+    '--bc-liveboard-board-light',
+    settings.useCustomLiveboardBoardColors ? settings.liveboardBoardLightColor || defaultSettings.liveboardBoardLightColor : ''
+  );
+  setOrRemoveProperty(
+    '--bc-liveboard-board-dark',
+    settings.useCustomLiveboardBoardColors ? settings.liveboardBoardDarkColor || defaultSettings.liveboardBoardDarkColor : ''
+  );
+  root.style.removeProperty('--bc-liveboard-name-font-weight');
+  root.style.removeProperty('--bc-liveboard-title-color');
+  root.style.removeProperty('--bc-liveboard-clock-font');
+  root.style.removeProperty('--bc-liveboard-clock-font-weight');
+
+  const liveboardPhotoRadius = String(settings.liveboardPhotoRadius || '').trim() === ''
+    ? NaN
+    : parseNumber(settings.liveboardPhotoRadius, NaN);
+  const liveboardBoardRadius = String(settings.liveboardBoardRadius || '').trim() === ''
+    ? NaN
+    : parseNumber(settings.liveboardBoardRadius, NaN);
+  const liveboardEvalBarRadius = String(settings.liveboardEvalBarRadius || '').trim() === ''
+    ? NaN
+    : parseNumber(settings.liveboardEvalBarRadius, NaN);
+  const liveboardClockRadius = String(settings.liveboardClockRadius || '').trim() === ''
+    ? NaN
+    : parseNumber(settings.liveboardClockRadius, NaN);
+  setOrRemoveProperty(
+    '--bc-liveboard-photo-radius',
+    Number.isFinite(liveboardPhotoRadius) && liveboardPhotoRadius >= 0 ? `${liveboardPhotoRadius}px` : ''
+  );
+  setOrRemoveProperty(
+    '--bc-liveboard-board-radius',
+    Number.isFinite(liveboardBoardRadius) && liveboardBoardRadius >= 0 ? `${liveboardBoardRadius}px` : ''
+  );
+  setOrRemoveProperty(
+    '--bc-liveboard-eval-radius',
+    Number.isFinite(liveboardEvalBarRadius) && liveboardEvalBarRadius >= 0 ? `${liveboardEvalBarRadius}px` : ''
+  );
+  setOrRemoveProperty(
+    '--bc-liveboard-clock-radius',
+    Number.isFinite(liveboardClockRadius) && liveboardClockRadius >= 0 ? `${liveboardClockRadius}px` : ''
+  );
 
   // Flag sizing
   const targetFlagSize = settings.scaleFlag ? `${emSize}em` : '1em';
