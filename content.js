@@ -5,6 +5,8 @@ const defaultSettings = {
   hideSide: false,
   hideClocks: false,
   hideLiveboardClocks: false,
+  hideLiveboardPhoto: false,
+  hideLiveboardFlag: false,
   hideUnderboard: false,
   hideEval: false,
   hideBoardCoords: false,
@@ -35,7 +37,7 @@ const defaultSettings = {
   hideRatingOption: false,
   hideMaterial: false,
   customPlayerOrder: false,
-  playerOrderList: 'title,name,flag,rating',
+  playerOrderList: 'titleName,flag,rating',
   playerOrderGap12: '6',
   playerOrderGap23: '6',
   playerOrderGap34: '6',
@@ -87,7 +89,14 @@ const defaultSettings = {
   liveboardClockFontWeight: ''
 };
 
-const PLAYER_ORDER_ITEMS = ['title', 'name', 'flag', 'rating'];
+const LEGACY_PLAYER_ORDER_ITEMS = ['title', 'name', 'flag', 'rating'];
+const PLAYER_ORDER_ITEMS = ['titleName', 'flag', 'rating'];
+const PLAYER_ORDER_PARTS = {
+  titleName: ['title', 'name'],
+  flag: ['flag'],
+  rating: ['rating']
+};
+const PLAYER_ORDER_GAP_CLASSES = ['bc-gap-before-12', 'bc-gap-before-23', 'bc-gap-before-34'];
 let latestSettings = { ...defaultSettings };
 let playerOrderObserver = null;
 let playerOrderRaf = 0;
@@ -177,11 +186,12 @@ function normalizePlayerOrderList(value) {
   const raw = String(value || '')
     .split(',')
     .map((item) => item.trim().toLowerCase())
-    .filter((item) => PLAYER_ORDER_ITEMS.includes(item));
+    .filter((item) => PLAYER_ORDER_ITEMS.includes(item) || LEGACY_PLAYER_ORDER_ITEMS.includes(item));
 
   const unique = [];
   for (const item of raw) {
-    if (!unique.includes(item)) unique.push(item);
+    const mappedItem = item === 'title' || item === 'name' ? 'titleName' : item;
+    if (!unique.includes(mappedItem)) unique.push(mappedItem);
   }
   for (const item of PLAYER_ORDER_ITEMS) {
     if (!unique.includes(item)) unique.push(item);
@@ -194,7 +204,7 @@ function resolvePlayerOrder(settings) {
   if (listFromString.length === PLAYER_ORDER_ITEMS.length) return listFromString;
 
   // Backward compatibility for older numeric order settings.
-  const legacyItems = PLAYER_ORDER_ITEMS.map((key) => {
+  const legacyItems = LEGACY_PLAYER_ORDER_ITEMS.map((key) => {
     const settingKey = `playerOrder${key.charAt(0).toUpperCase()}${key.slice(1)}`;
     const orderValue = Number(settings[settingKey]);
     return {
@@ -222,8 +232,28 @@ function collectPlayerInfoElements(infoSplit) {
   };
 }
 
+function cleanupCustomOrderClasses(elementMap) {
+  Object.values(elementMap).forEach((node) => {
+    if (!node || !node.classList) return;
+    PLAYER_ORDER_GAP_CLASSES.forEach((className) => node.classList.remove(className));
+  });
+}
+
+function buildPlayerOrderGapClassMap(order) {
+  const expandedOrder = order.flatMap((item) => PLAYER_ORDER_PARTS[item] || []);
+  const gapClassMap = {};
+
+  for (let index = 1; index < expandedOrder.length; index += 1) {
+    const key = expandedOrder[index];
+    gapClassMap[key] = `bc-gap-before-${index}${index + 1}`;
+  }
+
+  return gapClassMap;
+}
+
 function restoreOriginalInfoSplit(infoSplit) {
   const elementMap = collectPlayerInfoElements(infoSplit);
+  cleanupCustomOrderClasses(elementMap);
   const primary = document.createElement('div');
   const secondary = document.createElement('div');
   secondary.className = 'info-secondary';
@@ -239,24 +269,32 @@ function restoreOriginalInfoSplit(infoSplit) {
 }
 
 function applyCustomOrderToInfoSplit(infoSplit, order) {
-  const currentItems = Array.from(infoSplit.children);
-  const hasOnlyOrderItems = currentItems.length > 0 && currentItems.every((item) => item.classList.contains('bc-order-item'));
-  if (hasOnlyOrderItems) {
-    const currentOrder = currentItems
-      .map((item) => PLAYER_ORDER_ITEMS.find((key) => item.classList.contains(`bc-order-${key}`)))
-      .filter(Boolean)
-      .join(',');
-    if (currentOrder === order.join(',')) return;
-  }
-
   const elementMap = collectPlayerInfoElements(infoSplit);
+  const gapClassMap = buildPlayerOrderGapClassMap(order);
+  cleanupCustomOrderClasses(elementMap);
 
   infoSplit.innerHTML = '';
   for (const key of order) {
+    if (key === 'titleName') {
+      const item = document.createElement('div');
+      item.className = 'bc-order-item bc-order-title-name';
+      if (gapClassMap.title) item.classList.add(gapClassMap.title);
+      if (elementMap.title) item.appendChild(elementMap.title);
+      if (elementMap.name) {
+        if (elementMap.title && gapClassMap.name) {
+          elementMap.name.classList.add(gapClassMap.name);
+        }
+        item.appendChild(elementMap.name);
+      }
+      if (item.childNodes.length) infoSplit.appendChild(item);
+      continue;
+    }
+
     const node = elementMap[key];
     if (!node) continue;
     const item = document.createElement('div');
     item.className = `bc-order-item bc-order-${key}`;
+    if (gapClassMap[key]) item.classList.add(gapClassMap[key]);
     item.appendChild(node);
     infoSplit.appendChild(item);
   }
@@ -299,10 +337,98 @@ function activateLiveboardTab(chatBox) {
   liveboardTab.click();
 }
 
+function escapeCssClass(value) {
+  const rawValue = String(value || '');
+  if (!rawValue) return '';
+  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+    return CSS.escape(rawValue);
+  }
+  return rawValue.replace(/[^a-zA-Z0-9_-]/g, (char) => `\\${char}`);
+}
+
+function getLiveboardChapterId(liveboardGame) {
+  if (!liveboardGame || !liveboardGame.classList) return '';
+  const chapterClass = Array.from(liveboardGame.classList).find((className) => className.startsWith('liveboard-chapter-'));
+  return chapterClass ? chapterClass.slice('liveboard-chapter-'.length) : '';
+}
+
+function getMainBoardForLiveboard(liveboardGame) {
+  const chapterId = getLiveboardChapterId(liveboardGame);
+  if (chapterId) {
+    const chapterBoard = document.querySelector(`.analyse__board.main-board.${escapeCssClass(chapterId)}`);
+    if (chapterBoard) return chapterBoard;
+  }
+  return document.querySelector('.analyse__board.main-board');
+}
+
+function createLiveboardProfileWrap(sourceProfile, wrapClass) {
+  const wrap = document.createElement('div');
+  wrap.className = `bc-liveboard-profile-wrap ${wrapClass}`;
+  wrap.dataset.bcSignature = sourceProfile.outerHTML;
+
+  const clone = sourceProfile.cloneNode(true);
+  clone.classList.add('bc-liveboard-profile');
+  wrap.appendChild(clone);
+  return wrap;
+}
+
+function syncLiveboardProfileWrap(liveboardGame, sourceProfile, wrapClass, beforeNode) {
+  const existingWrap = Array.from(liveboardGame.children).find(
+    (child) => child.classList && child.classList.contains(wrapClass)
+  );
+
+  if (!sourceProfile) {
+    if (existingWrap) existingWrap.remove();
+    return;
+  }
+
+  const signature = sourceProfile.outerHTML;
+  if (existingWrap && existingWrap.dataset.bcSignature === signature) return;
+
+  const nextWrap = createLiveboardProfileWrap(sourceProfile, wrapClass);
+  if (existingWrap) {
+    existingWrap.replaceWith(nextWrap);
+    return;
+  }
+
+  if (beforeNode) {
+    liveboardGame.insertBefore(nextWrap, beforeNode);
+  } else {
+    liveboardGame.appendChild(nextWrap);
+  }
+}
+
+function syncLiveboardGame(liveboardGame) {
+  const playerRows = Array.from(liveboardGame.children).filter(
+    (child) => child.classList && child.classList.contains('mini-game__player')
+  );
+  const topRow = playerRows[0];
+  if (!topRow) return;
+
+  const bottomRow = playerRows[1] || null;
+  const mainBoard = getMainBoardForLiveboard(liveboardGame);
+  const topSource = mainBoard ? mainBoard.querySelector('.relay-board-player-top') : null;
+  const bottomSource = mainBoard ? mainBoard.querySelector('.relay-board-player-bot') : null;
+
+  liveboardGame.classList.add('bc-liveboard-mimic');
+  topRow.classList.add('bc-liveboard-stage');
+  if (bottomRow) bottomRow.classList.add('bc-liveboard-source-bottom');
+
+  syncLiveboardProfileWrap(liveboardGame, topSource, 'bc-liveboard-profile-top', topRow);
+  syncLiveboardProfileWrap(liveboardGame, bottomSource, 'bc-liveboard-profile-bot', bottomRow);
+}
+
+function syncLiveboardProfiles() {
+  const liveboardGames = document.querySelectorAll('main.analyse.is-relay .chat-liveboard .mini-game');
+  if (!liveboardGames.length) return;
+  liveboardGames.forEach(syncLiveboardGame);
+}
+
 function enforceLiveboardMode() {
   const chatBoxes = document.querySelectorAll('.mchat, .mchat-mod');
   if (!chatBoxes.length) return;
   chatBoxes.forEach((chatBox) => activateLiveboardTab(chatBox));
+  syncLiveboardProfiles();
 }
 
 function scheduleLiveboardSync() {
@@ -318,7 +444,13 @@ function ensureLiveboardObserver() {
   liveboardObserver = new MutationObserver(() => {
     scheduleLiveboardSync();
   });
-  liveboardObserver.observe(document.body, { childList: true, subtree: true });
+  liveboardObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['class', 'style']
+  });
 }
 
 function applySettings(settings) {
@@ -379,6 +511,14 @@ function applySettings(settings) {
   root.style.setProperty('--bc-display-side', settings.hideSide ? 'none' : '');
   root.style.setProperty('--bc-display-main-clocks', settings.hideClocks ? 'none' : 'flex');
   root.style.setProperty('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'inline-flex');
+  root.style.setProperty(
+    '--bc-display-liveboard-photo',
+    settings.hideLiveboardPhoto ? 'none' : 'var(--bc-display-photo, block)'
+  );
+  root.style.setProperty(
+    '--bc-display-liveboard-flag',
+    settings.hideLiveboardFlag ? 'none' : 'var(--bc-display-flag, inline-block)'
+  );
   root.style.setProperty('--bc-display-underboard', settings.hideUnderboard ? 'none' : '');
   root.style.setProperty('--bc-display-eval', settings.hideEval ? 'none' : '');
   root.style.setProperty('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'flex');

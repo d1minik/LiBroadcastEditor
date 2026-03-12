@@ -532,28 +532,27 @@
       <div class="setting-row">
         <span class="setting-label" style="align-self: flex-start; margin-top: 2px;">Drag &amp; Drop Order</span>
         <ul id="playerOrderList" class="order-list">
-          <li class="order-item" draggable="true" data-order-item="title">Title</li>
-          <li class="order-item" draggable="true" data-order-item="name">Name</li>
+          <li class="order-item" draggable="true" data-order-item="titleName">Title + Name</li>
           <li class="order-item" draggable="true" data-order-item="flag">Flag</li>
           <li class="order-item" draggable="true" data-order-item="rating">Rating</li>
         </ul>
       </div>
       <div class="setting-row">
-        <span class="setting-label">Gap Position 1-2</span>
+        <span class="setting-label" id="playerOrderGap12Label">Gap Title-Name</span>
         <div class="range-wrap">
           <input type="range" id="playerOrderGap12" min="0" max="40" value="6">
           <span class="range-val" id="playerOrderGap12Val">6</span>
         </div>
       </div>
       <div class="setting-row">
-        <span class="setting-label">Gap Position 2-3</span>
+        <span class="setting-label" id="playerOrderGap23Label">Gap Name-Flag</span>
         <div class="range-wrap">
           <input type="range" id="playerOrderGap23" min="0" max="40" value="6">
           <span class="range-val" id="playerOrderGap23Val">6</span>
         </div>
       </div>
       <div class="setting-row">
-        <span class="setting-label">Gap Position 3-4</span>
+        <span class="setting-label" id="playerOrderGap34Label">Gap Flag-Rating</span>
         <div class="range-wrap">
           <input type="range" id="playerOrderGap34" min="0" max="40" value="6">
           <span class="range-val" id="playerOrderGap34Val">6</span>
@@ -848,6 +847,14 @@
       <div class="setting-row">
         <span class="setting-label">Hide Liveboard Clocks</span>
         <label class="switch"><input type="checkbox" id="hideLiveboardClocks"><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Liveboard Photo</span>
+        <label class="switch"><input type="checkbox" id="hideLiveboardPhoto"><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Liveboard Flag</span>
+        <label class="switch"><input type="checkbox" id="hideLiveboardFlag"><span class="slider"></span></label>
       </div>
       <div class="setting-row" id="showLiveboardBgRow">
         <span class="setting-label">Show Liveboard Background</span>

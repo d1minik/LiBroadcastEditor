@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
     hideSide: document.getElementById('hideSide'),
     hideClocks: document.getElementById('hideClocks'),
     hideLiveboardClocks: document.getElementById('hideLiveboardClocks'),
+    hideLiveboardPhoto: document.getElementById('hideLiveboardPhoto'),
+    hideLiveboardFlag: document.getElementById('hideLiveboardFlag'),
     hideUnderboard: document.getElementById('hideUnderboard'),
     hideEval: document.getElementById('hideEval'),
     hideBoardCoords: document.getElementById('hideBoardCoords'),
@@ -102,6 +104,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const liveboardBgColorRow = document.getElementById('liveboardBgColorRow');
   const playerInfoLayoutRow = document.getElementById('playerInfoLayoutRow');
   const playerInfoLayoutLockNotice = document.getElementById('playerInfoLayoutLockNotice');
+  const playerOrderGapLabelElements = {
+    playerOrderGap12: document.getElementById('playerOrderGap12Label'),
+    playerOrderGap23: document.getElementById('playerOrderGap23Label'),
+    playerOrderGap34: document.getElementById('playerOrderGap34Label')
+  };
   const liveboardCustomControlBlocks = Array.from(document.querySelectorAll('[data-liveboard-custom-control]'));
   const fontStatusElements = {
     nameFont: document.getElementById('nameFontStatus'),
@@ -122,8 +129,19 @@ document.addEventListener("DOMContentLoaded", () => {
     liveboardClockFontWeight: document.getElementById('liveboardClockFontWeightStatus')
   };
 
-  const ORDER_ITEMS = ['title', 'name', 'flag', 'rating'];
+  const LEGACY_ORDER_ITEMS = ['title', 'name', 'flag', 'rating'];
+  const ORDER_ITEMS = ['titleName', 'flag', 'rating'];
   const ORDER_LABELS = {
+    titleName: 'Title + Name',
+    flag: 'Flag',
+    rating: 'Rating'
+  };
+  const ORDER_SEQUENCE_PARTS = {
+    titleName: ['title', 'name'],
+    flag: ['flag'],
+    rating: ['rating']
+  };
+  const ORDER_PART_LABELS = {
     title: 'Title',
     name: 'Name',
     flag: 'Flag',
@@ -168,6 +186,8 @@ document.addEventListener("DOMContentLoaded", () => {
     hideSide: false,
     hideClocks: false,
     hideLiveboardClocks: false,
+    hideLiveboardPhoto: false,
+    hideLiveboardFlag: false,
     hideUnderboard: false,
     hideEval: false,
     hideBoardCoords: false,
@@ -294,16 +314,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const list = String(value || '')
       .split(',')
       .map((item) => item.trim().toLowerCase())
-      .filter((item) => ORDER_ITEMS.includes(item));
+      .filter((item) => ORDER_ITEMS.includes(item) || LEGACY_ORDER_ITEMS.includes(item));
 
     const unique = [];
     for (const item of list) {
-      if (!unique.includes(item)) unique.push(item);
+      const mappedItem = item === 'title' || item === 'name' ? 'titleName' : item;
+      if (!unique.includes(mappedItem)) unique.push(mappedItem);
     }
     for (const item of ORDER_ITEMS) {
       if (!unique.includes(item)) unique.push(item);
     }
     return unique;
+  };
+
+  const expandOrderValue = (value) => {
+    return sanitizeOrderValue(value).flatMap((item) => ORDER_SEQUENCE_PARTS[item] || []);
+  };
+
+  const formatOrderGapLabel = (left, right) => {
+    const leftLabel = ORDER_PART_LABELS[left];
+    const rightLabel = ORDER_PART_LABELS[right];
+    return leftLabel && rightLabel ? `Gap ${leftLabel}-${rightLabel}` : 'Gap';
+  };
+
+  const updatePlayerOrderGapLabels = (value) => {
+    const expandedOrder = expandOrderValue(value === undefined ? getOrderValue() : value);
+    const gapPairs = [
+      [expandedOrder[0], expandedOrder[1]],
+      [expandedOrder[1], expandedOrder[2]],
+      [expandedOrder[2], expandedOrder[3]]
+    ];
+
+    gapPairs.forEach(([left, right], index) => {
+      const key = `playerOrderGap${index + 1}${index + 2}`;
+      const label = playerOrderGapLabelElements[key];
+      if (label) label.textContent = formatOrderGapLabel(left, right);
+    });
   };
 
   const stripMatchingQuotes = (value) => {
@@ -560,6 +606,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     playerOrderList.innerHTML = '';
     playerOrderList.appendChild(fragment);
+    updatePlayerOrderGapLabels(order.join(','));
   };
 
   const getOrderValue = () => {
@@ -613,6 +660,7 @@ document.addEventListener("DOMContentLoaded", () => {
     playerOrderList.addEventListener('dragend', () => {
       if (draggedItem) draggedItem.classList.remove('dragging');
       draggedItem = null;
+      updatePlayerOrderGapLabels();
       saveAndNotify();
     });
   };
@@ -649,6 +697,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (valLabel) valLabel.textContent = elements[key].value;
       }
     }
+    updatePlayerOrderGapLabels();
   };
 
   const syncCustomOrderLayoutLock = () => {
@@ -987,6 +1036,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setVar('--bc-display-side', settings.hideSide ? 'none' : 'flex');
     setVar('--bc-display-main-clocks', settings.hideClocks ? 'none' : 'flex');
     setVar('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'inline-flex');
+    setVar('--bc-display-liveboard-photo', settings.hideLiveboardPhoto ? 'none' : 'var(--bc-display-photo, block)');
+    setVar('--bc-display-liveboard-flag', settings.hideLiveboardFlag ? 'none' : 'var(--bc-display-flag, inline-block)');
     setVar('--bc-display-underboard', settings.hideUnderboard ? 'none' : 'block');
     setVar('--bc-display-eval', settings.hideEval ? 'none' : 'block');
     setVar('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'flex');
@@ -1138,12 +1189,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (settings.customPlayerOrder) {
       const order = customOrder;
-      const orderMap = {
-        title: order.indexOf('title') + 1,
-        name: order.indexOf('name') + 1,
-        flag: order.indexOf('flag') + 1,
-        rating: order.indexOf('rating') + 1
-      };
+      const expandedOrder = expandOrderValue(order.join(','));
+      const orderMap = expandedOrder.reduce((map, item, index) => {
+        map[item] = index + 1;
+        return map;
+      }, {});
+      const gapMap = expandedOrder.reduce((map, item, index) => {
+        map[item] = index === 0 ? '0' : `var(--bc-player-order-gap-${index}${index + 1}, 6px)`;
+        return map;
+      }, {});
+      const untitledNameGap = gapMap.title || '0';
 
       rules.push(`
 .relay-board-player .info-split {
@@ -1163,19 +1218,24 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 .relay-board-player .info-split .utitle {
   order: ${orderMap.title};
-  margin-inline-start: ${orderMap.title === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.title === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.title === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
+  margin-inline-start: ${gapMap.title || '0'} !important;
   display: inline-flex !important;
   align-items: center !important;
   line-height: 1 !important;
 }
 .relay-board-player .info-split .name {
   order: ${orderMap.name};
-  margin-inline-start: ${orderMap.name === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.name === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.name === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
+  margin-inline-start: ${gapMap.name || '0'} !important;
+  display: inline-flex !important;
+  align-items: center !important;
   line-height: 1 !important;
+}
+.relay-board-player .info-split:not(:has(.utitle)) .name {
+  margin-inline-start: ${untitledNameGap} !important;
 }
 .relay-board-player .info-split .mini-game__flag {
   order: ${orderMap.flag};
-  margin-inline-start: ${orderMap.flag === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.flag === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.flag === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
+  margin-inline-start: ${gapMap.flag || '0'} !important;
   margin-inline-end: 0 !important;
   width: calc(var(--bc-flag-width, 1em) * 0.9) !important;
   height: calc(var(--bc-flag-height, 1em) * 0.9) !important;
@@ -1184,7 +1244,7 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 .relay-board-player .info-split .elo {
   order: ${orderMap.rating};
-  margin-inline-start: ${orderMap.rating === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.rating === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.rating === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
+  margin-inline-start: ${gapMap.rating || '0'} !important;
   display: inline-flex !important;
   align-items: center !important;
   line-height: 1 !important;

@@ -30,6 +30,7 @@ body {
 .mchat-mod .mchat__content.liveboard {
     display: block !important;
     padding: 0.8rem 1rem 0.9rem !important;
+    overflow: visible !important;
 }
 
 main.analyse.is-relay .mchat,
@@ -48,6 +49,7 @@ main.analyse.is-relay .mchat-mod {
     border-radius: var(--bc-liveboard-panel-radius) !important;
     height: auto !important;
     min-height: 0 !important;
+    overflow: visible !important;
 }
 
 main.analyse.is-relay .mchat .mchat__tabs,
@@ -400,47 +402,56 @@ html.light .analyse .eval-gauge::before {
 }
 
 .bc-player-order-custom .relay-board-player .info-split .bc-order-item {
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center !important;
     align-self: center !important;
-    gap: 4px !important;
+    gap: 0 !important;
     min-width: 0 !important;
     line-height: 1 !important;
 }
 
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item.bc-order-flag,
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item.bc-order-rating {
+.bc-player-order-custom .relay-board-player .info-split .bc-order-title-name {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-flag,
+.bc-player-order-custom .relay-board-player .info-split .bc-order-rating {
     font-size: 0.9em !important;
 }
 
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item:nth-child(2) {
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item.bc-gap-before-12,
+.bc-player-order-custom .relay-board-player .info-split .name.bc-gap-before-12 {
     margin-inline-start: var(--bc-player-order-gap-12, 6px) !important;
 }
 
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item:nth-child(3) {
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item.bc-gap-before-23,
+.bc-player-order-custom .relay-board-player .info-split .name.bc-gap-before-23 {
     margin-inline-start: var(--bc-player-order-gap-23, 6px) !important;
 }
 
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item:nth-child(4) {
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item.bc-gap-before-34,
+.bc-player-order-custom .relay-board-player .info-split .name.bc-gap-before-34 {
     margin-inline-start: var(--bc-player-order-gap-34, 6px) !important;
 }
 
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item .mini-game__flag {
+.bc-player-order-custom .relay-board-player .info-split .bc-order-flag .mini-game__flag {
     margin-inline-end: 0 !important;
-    transform: translateY(15%) !important;
-    vertical-align: text-bottom !important;
+    transform: none !important;
+    vertical-align: middle !important;
     align-self: center !important;
 }
 
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item .utitle,
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item .name,
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item .elo {
+.bc-player-order-custom .relay-board-player .info-split .bc-order-title-name .utitle,
+.bc-player-order-custom .relay-board-player .info-split .bc-order-title-name .name,
+.bc-player-order-custom .relay-board-player .info-split .bc-order-rating .elo {
     display: inline-flex !important;
     align-items: center !important;
     line-height: 1 !important;
 }
 
-.bc-player-order-custom .relay-board-player .info-split .bc-order-item .elo {
+.bc-player-order-custom .relay-board-player .info-split .bc-order-rating .elo {
     vertical-align: baseline !important;
 }
 
@@ -476,6 +487,7 @@ html.light .analyse .eval-gauge::before {
 main.analyse.is-relay .mchat .chat-liveboard,
 main.analyse.is-relay .mchat-mod .chat-liveboard {
     width: 100% !important;
+    overflow: visible !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .mini-game,
@@ -483,155 +495,171 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game {
     width: 100% !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .cg-gauge,
-main.analyse.is-relay .mchat-mod .chat-liveboard .cg-gauge {
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player.bc-liveboard-source-bottom,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player.bc-liveboard-source-bottom {
+    display: none !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player.bc-liveboard-stage > .mini-game__user,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player.bc-liveboard-stage > .mini-game__user {
+    display: none !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player .mini-game__clock,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player .mini-game__clock {
+    display: none !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player.bc-liveboard-stage > .cg-gauge,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player.bc-liveboard-stage > .cg-gauge {
     display: flex !important;
     flex-flow: row nowrap !important;
     align-items: stretch !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    column-gap: var(--bc-liveboard-eval-gap, 4px) !important;
+    margin: 0 !important;
     width: 100% !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__gauge,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__gauge {
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge {
     width: unset !important;
     min-width: unset !important;
     max-width: unset !important;
     flex: 0 0 var(--bc-liveboard-eval-width, 4%) !important;
     margin: 0 !important;
-    margin-left: var(--bc-liveboard-eval-gap, 4px) !important;
-    margin-inline-start: var(--bc-liveboard-eval-gap, 4px) !important;
-    margin-right: 0 !important;
-    margin-inline-end: 0 !important;
-    border-radius: 0 !important;
+    border-radius: var(--bc-eval-radius, 0px) !important;
+    overflow: hidden !important;
+    position: relative !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__player,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__player {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    column-gap: calc(var(--bc-liveboard-scale, 0.82) * 0.55em) !important;
-    row-gap: calc(var(--bc-liveboard-scale, 0.82) * 0.7em) !important;
-    font-size: calc(var(--bc-liveboard-scale, 0.82) * var(--bc-name-size, 1em)) !important;
-    align-items: center !important;
-    line-height: 1 !important;
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: calc(var(--bc-eval-radius, 0px) + 1px) !important;
+    border-top-left-radius: var(--bc-eval-radius, 0px) !important;
+    border-top-right-radius: var(--bc-eval-radius, 0px) !important;
+    background: #444 !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+}
+
+html.light main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before,
+html.light main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before {
+    background: #606060 !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge .mini-game__gauge__black,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge .mini-game__gauge__black {
+    position: relative !important;
+    z-index: 1 !important;
+    border-top-left-radius: var(--bc-eval-radius, 0px) !important;
+    border-top-right-radius: var(--bc-eval-radius, 0px) !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__board,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__board {
+    flex: 1 1 auto !important;
     min-width: 0 !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile-wrap,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile-wrap {
+    flex: 0 0 auto !important;
+    display: block !important;
     width: 100% !important;
-    min-height: calc(var(--bc-liveboard-scale, 0.82) * 2.55em) !important;
-    padding-inline: calc(var(--bc-liveboard-scale, 0.82) * 0.45em) !important;
-    padding-block: calc(var(--bc-liveboard-scale, 0.82) * 0.18em) !important;
-    box-sizing: border-box !important;
+    height: calc(var(--bc-liveboard-scale, 0.82) * var(--bc-player-profile-height, 45px)) !important;
+    overflow: visible !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__player:first-child,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__player:first-child {
-    align-items: center !important;
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile.relay-board-player,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.relay-board-player {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: calc(100% / var(--bc-liveboard-scale, 0.82)) !important;
+    max-width: none !important;
+    margin: 0 !important;
+    transform: scale(var(--bc-liveboard-scale, 0.82)) !important;
+    transform-origin: top left !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__player:first-child .cg-gauge,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__player:first-child .cg-gauge {
-    grid-column: 1 / -1 !important;
-    width: 100% !important;
-}
-
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__player:last-child,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__player:last-child {
-    margin-top: calc(var(--bc-liveboard-scale, 0.82) * 0.7em) !important;
-}
-
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__user,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__user {
-    display: inline-flex !important;
-    align-items: center !important;
-    flex: 1 1 0 !important;
-    gap: calc(var(--bc-liveboard-scale, 0.82) * 0.34em) !important;
-    font-size: 1em !important;
-    line-height: 1 !important;
-    min-width: 0 !important;
-    white-space: nowrap !important;
-    min-height: calc(var(--bc-liveboard-scale, 0.82) * 2.05em) !important;
-}
-
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__user .name,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__user .name {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.16em !important;
-    line-height: 1 !important;
-    min-width: 0 !important;
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .name,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .name {
     font-family: var(--bc-liveboard-name-font, var(--bc-name-font, inherit)) !important;
     font-weight: var(--bc-liveboard-name-font-weight, var(--bc-name-font-weight, inherit)) !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__user .utitle,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__user .utitle {
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .utitle,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .utitle {
     color: var(--bc-liveboard-title-color, var(--bc-title-color, inherit)) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    font-size: 1em !important;
-    line-height: 1 !important;
-    vertical-align: middle !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__user .rating,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__user .rating {
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .mini-game__flag,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .mini-game__flag {
+    display: var(--bc-display-liveboard-flag, var(--bc-display-flag, inline-block)) !important;
+    width: calc(var(--bc-liveboard-flag-scale, 1) * var(--bc-flag-width, 1em)) !important;
+    height: calc(var(--bc-liveboard-flag-scale, 1) * var(--bc-flag-height, 1em)) !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .relay-board-player__photo,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .relay-board-player__photo {
+    display: var(--bc-display-liveboard-photo, var(--bc-display-photo, block)) !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .elo,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .elo {
     display: none !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__user .mini-game__flag,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__user .mini-game__flag {
-    display: var(--bc-display-flag, inline-block) !important;
-    width: calc(var(--bc-liveboard-flag-scale, 1) * var(--bc-flag-width, 1em)) !important;
-    height: calc(var(--bc-liveboard-flag-scale, 1) * var(--bc-flag-height, 1em)) !important;
-    margin: 0 !important;
-    border-radius: 3px !important;
-    object-fit: cover !important;
-    align-self: center !important;
-    transform: none !important;
-    vertical-align: middle !important;
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .bc-order-rating,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .bc-order-rating {
+    display: none !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game__clock,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game__clock {
-    display: var(--bc-display-liveboard-clocks, inline-flex) !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1 !important;
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .analyse__clock,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .analyse__clock {
+    display: var(--bc-display-liveboard-clocks, flex) !important;
     font-family: var(--bc-liveboard-clock-font, var(--bc-clock-font, inherit)) !important;
     font-weight: var(--bc-liveboard-clock-font-weight, var(--bc-clock-font-weight, inherit)) !important;
     font-size: calc(var(--bc-liveboard-clock-scale, 1) * 1em) !important;
     font-variant-numeric: tabular-nums lining-nums !important;
-    border-radius: var(--bc-clock-radius, 3px) !important;
-    border: var(--bc-clock-border-width, 0px) solid var(--bc-clock-border-color, transparent) !important;
-    box-shadow: inset 0 0 0 var(--bc-clock-border-width, 0px) var(--bc-clock-border-color, transparent) !important;
-    box-sizing: border-box !important;
-    vertical-align: middle !important;
-    align-self: center !important;
-    inline-size: 7.8ch !important;
-    min-inline-size: 7.8ch !important;
-    block-size: calc(var(--bc-liveboard-scale, 0.82) * 2.05em) !important;
-    justify-self: end !important;
-    margin: 0 !important;
-    padding-inline: calc(var(--bc-liveboard-scale, 0.82) * 0.5em) !important;
-    padding-block: 0 !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    flex: 0 0 auto !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .liveboard-orientation-white > .mini-game__player:first-child .mini-game__clock,
-main.analyse.is-relay .mchat-mod .chat-liveboard .liveboard-orientation-white > .mini-game__player:first-child .mini-game__clock,
-main.analyse.is-relay .mchat .chat-liveboard .liveboard-orientation-black > .mini-game__player:last-child .mini-game__clock,
-main.analyse.is-relay .mchat-mod .chat-liveboard .liveboard-orientation-black > .mini-game__player:last-child .mini-game__clock {
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile.relay-board-player-top .analyse__clock,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.relay-board-player-top .analyse__clock {
     color: var(--bc-clock-black-color, inherit) !important;
     background: var(--bc-clock-black-bg, inherit) !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .liveboard-orientation-white > .mini-game__player:last-child .mini-game__clock,
-main.analyse.is-relay .mchat-mod .chat-liveboard .liveboard-orientation-white > .mini-game__player:last-child .mini-game__clock,
-main.analyse.is-relay .mchat .chat-liveboard .liveboard-orientation-black > .mini-game__player:first-child .mini-game__clock,
-main.analyse.is-relay .mchat-mod .chat-liveboard .liveboard-orientation-black > .mini-game__player:first-child .mini-game__clock {
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile.relay-board-player-bot .analyse__clock,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.relay-board-player-bot .analyse__clock {
     color: var(--bc-clock-white-color, inherit) !important;
     background: var(--bc-clock-white-bg, inherit) !important;
 }
