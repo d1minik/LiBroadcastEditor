@@ -9,7 +9,32 @@ body {
 }
 
 .mchat, .mchat-mod {
-    display: var(--bc-display-chat, flex) !important;
+    display: var(--bc-display-liveboard, flex) !important;
+}
+
+.mchat .mchat__tab.discussion,
+.mchat-mod .mchat__tab.discussion,
+.mchat .mchat__content.discussion,
+.mchat-mod .mchat__content.discussion,
+.mchat .mchat__say,
+.mchat-mod .mchat__say {
+    display: none !important;
+}
+
+.mchat .mchat__tab.liveboard,
+.mchat-mod .mchat__tab.liveboard {
+    display: flex !important;
+}
+
+.mchat .mchat__content.liveboard,
+.mchat-mod .mchat__content.liveboard {
+    display: block !important;
+}
+
+.relay-admin__container,
+.relay-admin__container .relay-admin,
+.relay-admin__container .study__side {
+    display: none !important;
 }
 
 .analyse__tools {
@@ -27,6 +52,7 @@ body {
     justify-content: center !important;
     line-height: 1 !important;
     font-family: var(--bc-clock-font, inherit) !important;
+    font-weight: var(--bc-clock-font-weight, inherit) !important;
     border-radius: var(--bc-clock-radius, 3px) !important;
     border: var(--bc-clock-border-width, 0px) solid var(--bc-clock-border-color, transparent) !important;
     box-shadow: inset 0 0 0 var(--bc-clock-border-width, 0px) var(--bc-clock-border-color, transparent) !important;
@@ -71,8 +97,12 @@ body {
     overflow: hidden !important;
 }
 
+.analyse__board.main-board cg-board {
+    box-shadow: none !important;
+}
+
 .analyse__board.main-board coords {
-    display: var(--bc-display-board-coords, initial) !important;
+    display: var(--bc-display-board-coords, flex) !important;
 }
 
 .analyse__board.main-board cg-resize {
@@ -207,6 +237,7 @@ body {
 /* Profile Box */
 .relay-board-player {
     border-radius: 0 !important;
+    background: var(--bc-profile-bg, linear-gradient(to bottom, var(--c-metal-top), var(--c-metal-bottom))) !important;
 }
 
 .bc-hide-profile-bg .relay-board-player,
@@ -229,10 +260,9 @@ body {
     font-size: var(--bc-name-size, inherit) !important;
 }
 
-.relay-board-player .name,
-.mini-game__user .name,
-.relay-game__player .name {
+.relay-board-player .name {
     font-family: var(--bc-name-font, inherit) !important;
+    font-weight: var(--bc-name-font-weight, inherit) !important;
 }
 
 .relay-board-player .utitle {
@@ -240,21 +270,10 @@ body {
     font-size: var(--bc-title-size, inherit) !important;
 }
 
-.mini-game__user .utitle,
-.relay-game__player .utitle {
-    color: var(--bc-title-color, inherit) !important;
-}
-
 .relay-board-player .elo {
     color: var(--bc-rating-color, inherit) !important;
     display: var(--bc-display-rating, inline) !important;
     font-size: var(--bc-rating-size, inherit) !important;
-}
-
-.mini-game__user .rating,
-.relay-game__player .rating {
-    color: var(--bc-rating-color, inherit) !important;
-    display: var(--bc-display-rating, inline) !important;
 }
 
 .relay-board-player .info-split {
@@ -286,7 +305,7 @@ body {
 .bc-player-order-custom .relay-board-player .info-split {
     display: flex !important;
     flex-direction: row !important;
-    align-items: center !important;
+    align-items: baseline !important;
     justify-content: flex-start !important;
     gap: 0 !important;
     flex-wrap: nowrap !important;
@@ -294,9 +313,16 @@ body {
 
 .bc-player-order-custom .relay-board-player .info-split .bc-order-item {
     display: flex !important;
-    align-items: center !important;
+    align-items: baseline !important;
+    align-self: baseline !important;
     gap: 4px !important;
     min-width: 0 !important;
+    line-height: 1 !important;
+}
+
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item.bc-order-flag,
+.bc-player-order-custom .relay-board-player .info-split .bc-order-item.bc-order-rating {
+    font-size: 0.9em !important;
 }
 
 .bc-player-order-custom .relay-board-player .info-split .bc-order-item:nth-child(2) {
@@ -313,20 +339,21 @@ body {
 
 .bc-player-order-custom .relay-board-player .info-split .bc-order-item .mini-game__flag {
     margin-inline-end: 0 !important;
-    transform: translateY(0) !important;
-    vertical-align: middle !important;
+    transform: translateY(15%) !important;
+    vertical-align: text-bottom !important;
+    align-self: baseline !important;
 }
 
 .bc-player-order-custom .relay-board-player .info-split .bc-order-item .utitle,
 .bc-player-order-custom .relay-board-player .info-split .bc-order-item .name,
 .bc-player-order-custom .relay-board-player .info-split .bc-order-item .elo {
     display: inline-flex !important;
-    align-items: center !important;
+    align-items: baseline !important;
     line-height: 1 !important;
 }
 
 .bc-player-order-custom .relay-board-player .info-split .bc-order-item .elo {
-    transform: translateY(0) !important;
+    vertical-align: baseline !important;
 }
 
 .relay-board-player .material {
@@ -334,12 +361,9 @@ body {
 }
 
 /* Flag Adjustments */
-img.mini-game__flag, 
-img.relay-game__flag,
-.fide-player .mini-game__flag,
 .relay-board-player .mini-game__flag {
-    display: var(--bc-display-flag, var(--bc-flag-display, inline-block)) !important;
-    border-radius: var(--bc-flag-radius, 3px) !important;
+    display: var(--bc-display-flag, inline-block) !important;
+    border-radius: 3px !important;
     width: var(--bc-flag-width, 1em) !important;
     height: var(--bc-flag-height, 1em) !important;
     object-fit: cover !important;
@@ -347,13 +371,10 @@ img.relay-game__flag,
     transform: translateY(15%) !important;
 }
 
-.bc-layout-inline img.mini-game__flag, 
-.bc-layout-inline img.relay-game__flag,
-.bc-layout-inline .fide-player .mini-game__flag,
 .bc-layout-inline .relay-board-player .mini-game__flag {
     transform: translateY(15%) !important;
 }
 
-.bc-player-order-custom.bc-layout-inline .relay-board-player .info-split .mini-game__flag {
-    transform: translateY(0) !important;
+.bc-player-order-custom .relay-board-player .info-split .mini-game__flag {
+    transform: translateY(15%) !important;
 }

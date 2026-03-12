@@ -6,7 +6,6 @@ const defaultSettings = {
   hideClocks: false,
   hideUnderboard: false,
   hideEval: false,
-  hideBoardShadow: false,
   hideBoardCoords: false,
   hideBoardResizeHandle: false,
   evalBarWidth: '15',
@@ -28,6 +27,8 @@ const defaultSettings = {
   lastMoveColor: '#9bc700',
   lastMoveOpacity: '41',
   hideProfileBg: false,
+  useCustomProfileBgColor: false,
+  profileBgColor: '#403a34',
   hidePhoto: false,
   hideFlagOption: false,
   hideRatingOption: false,
@@ -43,6 +44,7 @@ const defaultSettings = {
   underboardMargin: '0',
   pageBgColor: '#161512',
   nameFont: '',
+  nameFontWeight: '',
   profileItemSize: '14',
   scaleTitle: true,
   scaleName: true,
@@ -53,6 +55,7 @@ const defaultSettings = {
   ratingColor: '#aaaaaa',
   ratingOpacity: '100',
   clockFont: '',
+  clockFontWeight: '',
   clockRadius: '3',
   clockBorderWidth: '0',
   clockBorderColor: '#000000',
@@ -65,14 +68,94 @@ const defaultSettings = {
   clockBlackColor: '#ffffff',
   clockBlackTextOpacity: '100',
   clockBlackBgColor: '#262421',
-  clockBlackBgOpacity: '100',
-  flagShape: 'default'
+  clockBlackBgOpacity: '100'
 };
 
 const PLAYER_ORDER_ITEMS = ['title', 'name', 'flag', 'rating'];
 let latestSettings = { ...defaultSettings };
 let playerOrderObserver = null;
 let playerOrderRaf = 0;
+let liveboardObserver = null;
+let liveboardRaf = 0;
+const FONT_PRESETS = [
+  { label: 'Noto Sans', css: "'Noto Sans', sans-serif" },
+  { label: 'Roboto', css: 'Roboto, sans-serif' },
+  { label: 'System UI', css: "system-ui, -apple-system, 'Segoe UI', sans-serif" },
+  { label: 'Arial', css: 'Arial, sans-serif' },
+  { label: 'Verdana', css: 'Verdana, sans-serif' },
+  { label: 'Trebuchet MS', css: "'Trebuchet MS', sans-serif" },
+  { label: 'Tahoma', css: 'Tahoma, sans-serif' },
+  { label: 'Times New Roman', css: "'Times New Roman', serif" },
+  { label: 'Georgia', css: 'Georgia, serif' },
+  { label: 'Courier New', css: "'Courier New', monospace" },
+  { label: 'Lucida Console', css: "'Lucida Console', monospace" }
+];
+const FONT_PRESET_BY_LABEL = new Map(FONT_PRESETS.map((preset) => [normalizeFontLabel(preset.label), preset]));
+const FONT_PRESET_BY_STACK = new Map(FONT_PRESETS.map((preset) => [normalizeFontStack(preset.css), preset]));
+
+function stripMatchingQuotes(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '';
+  const firstChar = trimmed[0];
+  const lastChar = trimmed[trimmed.length - 1];
+  if ((firstChar === '"' || firstChar === "'") && firstChar === lastChar) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
+function parseFontFamilies(value) {
+  const input = String(value || '');
+  const families = [];
+  let current = '';
+  let quote = '';
+
+  for (const char of input) {
+    if ((char === '"' || char === "'")) {
+      if (quote === char) {
+        quote = '';
+      } else if (!quote) {
+        quote = char;
+      }
+      current += char;
+      continue;
+    }
+
+    if (char === ',' && !quote) {
+      const family = stripMatchingQuotes(current);
+      if (family) families.push(family);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  const trailingFamily = stripMatchingQuotes(current);
+  if (trailingFamily) families.push(trailingFamily);
+  return families;
+}
+
+function normalizeFontLabel(value) {
+  return stripMatchingQuotes(value).replace(/\s+/g, ' ').toLowerCase();
+}
+
+function normalizeFontStack(value) {
+  return parseFontFamilies(value)
+    .map((family) => family.replace(/\s+/g, ' ').toLowerCase())
+    .join(',');
+}
+
+function resolveFontCssValue(value) {
+  const rawValue = String(value || '').trim();
+  if (!rawValue) return '';
+
+  const preset =
+    FONT_PRESET_BY_LABEL.get(normalizeFontLabel(rawValue)) ||
+    FONT_PRESET_BY_STACK.get(normalizeFontStack(rawValue));
+
+  return preset ? preset.css : rawValue;
+}
 
 function normalizePlayerOrderList(value) {
   const raw = String(value || '')
@@ -167,12 +250,12 @@ function applyPlayerOrderLayout(settings) {
   const infoSplits = document.querySelectorAll('.relay-board-player .info-split');
   if (!infoSplits.length) return;
 
+  const order = resolvePlayerOrder(settings);
   if (!settings.customPlayerOrder) {
     infoSplits.forEach(restoreOriginalInfoSplit);
     return;
   }
 
-  const order = resolvePlayerOrder(settings);
   infoSplits.forEach((infoSplit) => applyCustomOrderToInfoSplit(infoSplit, order));
 }
 
@@ -191,6 +274,35 @@ function ensurePlayerOrderObserver() {
     schedulePlayerOrderReapply();
   });
   playerOrderObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+function activateLiveboardTab(chatBox) {
+  if (!chatBox) return;
+  const liveboardTab = chatBox.querySelector('.mchat__tab.liveboard');
+  if (!liveboardTab || liveboardTab.classList.contains('mchat__tab-active')) return;
+  liveboardTab.click();
+}
+
+function enforceLiveboardMode() {
+  const chatBoxes = document.querySelectorAll('.mchat, .mchat-mod');
+  if (!chatBoxes.length) return;
+  chatBoxes.forEach((chatBox) => activateLiveboardTab(chatBox));
+}
+
+function scheduleLiveboardSync() {
+  if (liveboardRaf) return;
+  liveboardRaf = requestAnimationFrame(() => {
+    liveboardRaf = 0;
+    enforceLiveboardMode();
+  });
+}
+
+function ensureLiveboardObserver() {
+  if (liveboardObserver || !document.body) return;
+  liveboardObserver = new MutationObserver(() => {
+    scheduleLiveboardSync();
+  });
+  liveboardObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 function applySettings(settings) {
@@ -235,17 +347,14 @@ function applySettings(settings) {
 
   // Visibility Toggles
   root.style.setProperty('--bc-display-header', settings.hideHeader ? 'none' : '');
-  root.style.setProperty('--bc-display-chat', settings.hideChat ? 'none' : '');
+  root.style.setProperty('--bc-display-liveboard', settings.hideChat ? 'none' : '');
   root.style.setProperty('--bc-display-move-table', settings.hideMoveTable ? 'none' : '');
   root.style.setProperty('--bc-display-side', settings.hideSide ? 'none' : '');
   root.style.setProperty('--bc-display-clocks', settings.hideClocks ? 'none' : '');
   root.style.setProperty('--bc-display-underboard', settings.hideUnderboard ? 'none' : '');
   root.style.setProperty('--bc-display-eval', settings.hideEval ? 'none' : '');
-  root.style.setProperty('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'initial');
+  root.style.setProperty('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'flex');
   root.style.setProperty('--bc-display-board-resize-handle', settings.hideBoardResizeHandle ? 'none' : 'initial');
-
-  // Board Settings
-  root.style.setProperty('--bc-board-shadow', settings.hideBoardShadow ? 'none' : '');
 
   const defaultEvalWidth = parseNumber(defaultSettings.evalBarWidth, 15);
   const evalWidth = parseNumber(settings.evalBarWidth, defaultEvalWidth);
@@ -310,6 +419,11 @@ function applySettings(settings) {
   } else {
     root.classList.remove('bc-hide-profile-bg');
   }
+  if (!settings.hideProfileBg && settings.useCustomProfileBgColor) {
+    root.style.setProperty('--bc-profile-bg', settings.profileBgColor || defaultSettings.profileBgColor);
+  } else {
+    root.style.removeProperty('--bc-profile-bg');
+  }
   root.style.setProperty('--bc-display-photo', settings.hidePhoto ? 'none' : '');
   root.style.setProperty('--bc-display-flag', settings.hideFlagOption ? 'none' : '');
   root.style.setProperty('--bc-display-rating', settings.hideRatingOption ? 'none' : '');
@@ -337,12 +451,20 @@ function applySettings(settings) {
   }
   applyPlayerOrderLayout(settings);
   ensurePlayerOrderObserver();
+  scheduleLiveboardSync();
+  ensureLiveboardObserver();
 
   // Typography & Colors
-  if (settings.nameFont) {
-    root.style.setProperty('--bc-name-font', settings.nameFont);
+  const resolvedNameFont = resolveFontCssValue(settings.nameFont);
+  if (resolvedNameFont) {
+    root.style.setProperty('--bc-name-font', resolvedNameFont);
   } else {
     root.style.removeProperty('--bc-name-font');
+  }
+  if (settings.nameFontWeight) {
+    root.style.setProperty('--bc-name-font-weight', settings.nameFontWeight);
+  } else {
+    root.style.removeProperty('--bc-name-font-weight');
   }
 
   const baseSize = settings.profileItemSize !== undefined ? settings.profileItemSize : 14;
@@ -376,10 +498,16 @@ function applySettings(settings) {
   );
 
   // Clock Settings
-  if (settings.clockFont) {
-    root.style.setProperty('--bc-clock-font', settings.clockFont);
+  const resolvedClockFont = resolveFontCssValue(settings.clockFont);
+  if (resolvedClockFont) {
+    root.style.setProperty('--bc-clock-font', resolvedClockFont);
   } else {
     root.style.removeProperty('--bc-clock-font');
+  }
+  if (settings.clockFontWeight) {
+    root.style.setProperty('--bc-clock-font-weight', settings.clockFontWeight);
+  } else {
+    root.style.removeProperty('--bc-clock-font-weight');
   }
   if (settings.clockRadius !== undefined) {
     root.style.setProperty('--bc-clock-radius', `${settings.clockRadius}px`);
@@ -408,42 +536,10 @@ function applySettings(settings) {
     colorWithOpacity(settings.clockBlackBgColor, clockBlackBgOpacity, defaultSettings.clockBlackBgColor)
   );
 
-  // Flag Shape
-  let flagRadius = '3px';
-  let flagDisplay = 'inline-block';
-  let flagWidth = '';
-  let flagHeight = '';
-
+  // Flag sizing
   const targetFlagSize = settings.scaleFlag ? `${emSize}em` : '1em';
-
-  if (settings.flagShape === 'circle') {
-    flagRadius = '50%';
-    flagWidth = targetFlagSize;
-    flagHeight = targetFlagSize;
-  } else if (settings.flagShape === 'square') {
-    flagRadius = '0';
-    flagWidth = targetFlagSize;
-    flagHeight = targetFlagSize;
-  } else if (settings.flagShape === 'hidden') {
-    flagDisplay = 'none';
-  }
-
-  root.style.setProperty('--bc-flag-radius', flagRadius);
-  
-  if (settings.scaleFlag && settings.flagShape === 'default') {
-      root.style.setProperty('--bc-flag-width', targetFlagSize);
-      root.style.setProperty('--bc-flag-height', targetFlagSize);
-  } else if (flagWidth) {
-    root.style.setProperty('--bc-flag-width', flagWidth);
-    root.style.setProperty('--bc-flag-height', flagHeight);
-  } else {
-    root.style.removeProperty('--bc-flag-width');
-    root.style.removeProperty('--bc-flag-height');
-  }
-
-  if (!settings.hideFlagOption) {
-    root.style.setProperty('--bc-flag-display', flagDisplay);
-  }
+  root.style.setProperty('--bc-flag-width', targetFlagSize);
+  root.style.setProperty('--bc-flag-height', targetFlagSize);
 }
 
 // Initial load

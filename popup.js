@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     hideClocks: document.getElementById('hideClocks'),
     hideUnderboard: document.getElementById('hideUnderboard'),
     hideEval: document.getElementById('hideEval'),
-    hideBoardShadow: document.getElementById('hideBoardShadow'),
     hideBoardCoords: document.getElementById('hideBoardCoords'),
     hideBoardResizeHandle: document.getElementById('hideBoardResizeHandle'),
     useCustomBoardColors: document.getElementById('useCustomBoardColors'),
@@ -29,6 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
     evalZeroOpacity: document.getElementById('evalZeroOpacity'),
     evalZeroThickness: document.getElementById('evalZeroThickness'),
     hideProfileBg: document.getElementById('hideProfileBg'),
+    useCustomProfileBgColor: document.getElementById('useCustomProfileBgColor'),
+    profileBgColor: document.getElementById('profileBgColor'),
     hidePhoto: document.getElementById('hidePhoto'),
     hideFlagOption: document.getElementById('hideFlagOption'),
     hideRatingOption: document.getElementById('hideRatingOption'),
@@ -43,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     underboardMargin: document.getElementById('underboardMargin'),
     pageBgColor: document.getElementById('pageBgColor'),
     nameFont: document.getElementById('nameFont'),
+    nameFontWeight: document.getElementById('nameFontWeight'),
     profileItemSize: document.getElementById('profileItemSize'),
     scaleTitle: document.getElementById('scaleTitle'),
     scaleName: document.getElementById('scaleName'),
@@ -53,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ratingColor: document.getElementById('ratingColor'),
     ratingOpacity: document.getElementById('ratingOpacity'),
     clockFont: document.getElementById('clockFont'),
+    clockFontWeight: document.getElementById('clockFontWeight'),
     clockRadius: document.getElementById('clockRadius'),
     clockBorderColor: document.getElementById('clockBorderColor'),
     clockBorderOpacity: document.getElementById('clockBorderOpacity'),
@@ -65,8 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clockBlackColor: document.getElementById('clockBlackColor'),
     clockBlackTextOpacity: document.getElementById('clockBlackTextOpacity'),
     clockBlackBgColor: document.getElementById('clockBlackBgColor'),
-    clockBlackBgOpacity: document.getElementById('clockBlackBgOpacity'),
-    flagShape: document.getElementById('flagShape')
+    clockBlackBgOpacity: document.getElementById('clockBlackBgOpacity')
   };
 
   const resetButton = document.getElementById('resetProfileSizes');
@@ -78,6 +80,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const exportStandaloneCssButton = document.getElementById('exportStandaloneCss');
   const resetAllButton = document.getElementById('resetAllSettings');
   const importCssFileInput = document.getElementById('importCssFileInput');
+  const useCustomProfileBgColorRow = document.getElementById('useCustomProfileBgColorRow');
+  const profileBgColorRow = document.getElementById('profileBgColorRow');
+  const playerInfoLayoutRow = document.getElementById('playerInfoLayoutRow');
+  const playerInfoLayoutLockNotice = document.getElementById('playerInfoLayoutLockNotice');
+  const fontStatusElements = {
+    nameFont: document.getElementById('nameFontStatus'),
+    clockFont: document.getElementById('clockFontStatus')
+  };
+  const fontPresetElements = {
+    nameFont: document.getElementById('nameFontPreset'),
+    clockFont: document.getElementById('clockFontPreset')
+  };
+  const fontWeightStatusElements = {
+    nameFontWeight: document.getElementById('nameFontWeightStatus'),
+    clockFontWeight: document.getElementById('clockFontWeightStatus')
+  };
 
   const ORDER_ITEMS = ['title', 'name', 'flag', 'rating'];
   const ORDER_LABELS = {
@@ -87,11 +105,57 @@ document.addEventListener("DOMContentLoaded", () => {
     rating: 'Rating'
   };
   const DEFAULT_ORDER = ORDER_ITEMS.join(',');
+  const FONT_WEIGHT_BY_FONT_KEY = {
+    nameFont: 'nameFontWeight',
+    clockFont: 'clockFontWeight'
+  };
+  const FONT_WEIGHT_CONFIG = {
+    nameFontWeight: {
+      fontKey: 'nameFont',
+      row: document.getElementById('nameFontWeightRow')
+    },
+    clockFontWeight: {
+      fontKey: 'clockFont',
+      row: document.getElementById('clockFontWeightRow')
+    }
+  };
+  const FONT_WEIGHT_SAMPLE = 'Hamburgefonsiv 0123456789';
 
   let draggedItem = null;
   let cachedContentCssText = null;
+  let layoutLockNoticeTimer = 0;
+  let fontWeightMeasureRoot = null;
 
   const checkboxDefaultsTrue = new Set(['showEvalTicks', 'scaleTitle', 'scaleName', 'scaleRating', 'scaleFlag']);
+  const FONT_INPUT_KEYS = new Set(['nameFont', 'clockFont']);
+  const GENERIC_FONT_FAMILIES = new Set([
+    'serif',
+    'sans-serif',
+    'monospace',
+    'cursive',
+    'fantasy',
+    'system-ui',
+    'emoji',
+    'math',
+    'fangsong',
+    'ui-serif',
+    'ui-sans-serif',
+    'ui-monospace',
+    'ui-rounded'
+  ]);
+  const FONT_PRESETS = [
+    { label: 'Noto Sans', css: "'Noto Sans', sans-serif" },
+    { label: 'Roboto', css: 'Roboto, sans-serif' },
+    { label: 'System UI', css: "system-ui, -apple-system, 'Segoe UI', sans-serif" },
+    { label: 'Arial', css: 'Arial, sans-serif' },
+    { label: 'Verdana', css: 'Verdana, sans-serif' },
+    { label: 'Trebuchet MS', css: "'Trebuchet MS', sans-serif" },
+    { label: 'Tahoma', css: 'Tahoma, sans-serif' },
+    { label: 'Times New Roman', css: "'Times New Roman', serif" },
+    { label: 'Georgia', css: 'Georgia, serif' },
+    { label: 'Courier New', css: "'Courier New', monospace" },
+    { label: 'Lucida Console', css: "'Lucida Console', monospace" }
+  ];
 
   const sanitizeOrderValue = (value) => {
     const list = String(value || '')
@@ -107,6 +171,235 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!unique.includes(item)) unique.push(item);
     }
     return unique;
+  };
+
+  const stripMatchingQuotes = (value) => {
+    const trimmed = String(value || '').trim();
+    if (!trimmed) return '';
+
+    const firstChar = trimmed[0];
+    const lastChar = trimmed[trimmed.length - 1];
+    if ((firstChar === '"' || firstChar === "'") && firstChar === lastChar) {
+      return trimmed.slice(1, -1).trim();
+    }
+
+    return trimmed;
+  };
+
+  const parseFontFamilies = (value) => {
+    const input = String(value || '');
+    const families = [];
+    let current = '';
+    let quote = '';
+
+    for (const char of input) {
+      if (char === '"' || char === "'") {
+        if (quote === char) {
+          quote = '';
+        } else if (!quote) {
+          quote = char;
+        }
+        current += char;
+        continue;
+      }
+
+      if (char === ',' && !quote) {
+        const family = stripMatchingQuotes(current);
+        if (family) families.push(family);
+        current = '';
+        continue;
+      }
+
+      current += char;
+    }
+
+    const trailingFamily = stripMatchingQuotes(current);
+    if (trailingFamily) families.push(trailingFamily);
+    return families;
+  };
+
+  const normalizeFontLabel = (value) => stripMatchingQuotes(value).replace(/\s+/g, ' ').toLowerCase();
+  const normalizeFontStack = (value) =>
+    parseFontFamilies(value)
+      .map((family) => family.replace(/\s+/g, ' ').toLowerCase())
+      .join(',');
+
+  const fontPresetByLabel = new Map(FONT_PRESETS.map((preset) => [normalizeFontLabel(preset.label), preset]));
+  const fontPresetByStack = new Map(FONT_PRESETS.map((preset) => [normalizeFontStack(preset.css), preset]));
+  const fontWeightSupportCache = new Map();
+
+  const resolveFontSetting = (value) => {
+    const rawValue = String(value || '').trim();
+    if (!rawValue) {
+      return { label: '', css: '', preferredFamily: '' };
+    }
+
+    const preset = fontPresetByLabel.get(normalizeFontLabel(rawValue)) || fontPresetByStack.get(normalizeFontStack(rawValue));
+    if (preset) {
+      return {
+        label: preset.label,
+        css: preset.css,
+        preferredFamily: parseFontFamilies(preset.css)[0] || ''
+      };
+    }
+
+    const families = parseFontFamilies(rawValue);
+    const preferredFamily = families.find((family) => !GENERIC_FONT_FAMILIES.has(family.toLowerCase())) || families[0] || '';
+    return {
+      label: rawValue,
+      css: rawValue,
+      preferredFamily
+    };
+  };
+
+  const canonicalizeFontSetting = (value) => resolveFontSetting(value).label;
+  const formatFontSettingForUi = (value) => resolveFontSetting(value).label;
+  const resolveFontCssValue = (value) => resolveFontSetting(value).css;
+
+  const isFontInstalled = (family) => {
+    if (!family || GENERIC_FONT_FAMILIES.has(family.toLowerCase())) return true;
+    if (!document.fonts || typeof document.fonts.check !== 'function') return true;
+
+    try {
+      const escapedFamily = family.replace(/["\\]/g, '\\$&');
+      return document.fonts.check(`16px "${escapedFamily}"`);
+    } catch (error) {
+      return true;
+    }
+  };
+
+  const ensureFontWeightMeasureRoot = () => {
+    if (fontWeightMeasureRoot) return fontWeightMeasureRoot;
+    const root = document.createElement('div');
+    root.style.position = 'absolute';
+    root.style.visibility = 'hidden';
+    root.style.pointerEvents = 'none';
+    root.style.inset = '0 auto auto -9999px';
+    root.style.whiteSpace = 'pre';
+    document.body.appendChild(root);
+    fontWeightMeasureRoot = root;
+    return fontWeightMeasureRoot;
+  };
+
+  const measureFontWeightWidth = (family, weight) => {
+    const root = ensureFontWeightMeasureRoot();
+    const probe = document.createElement('span');
+    probe.textContent = FONT_WEIGHT_SAMPLE;
+    probe.style.fontFamily = `"${family.replace(/["\\]/g, '\\$&')}", monospace`;
+    probe.style.fontWeight = String(weight);
+    probe.style.fontSize = '32px';
+    probe.style.letterSpacing = '0';
+    probe.style.lineHeight = '1';
+    probe.style.fontSynthesis = 'none';
+    root.appendChild(probe);
+    const width = probe.getBoundingClientRect().width;
+    probe.remove();
+    return width;
+  };
+
+  const fontSupportsMultipleWeights = (family) => {
+    if (!family) return true;
+    const normalizedFamily = normalizeFontLabel(family);
+    if (!normalizedFamily || GENERIC_FONT_FAMILIES.has(normalizedFamily)) return true;
+    if (fontWeightSupportCache.has(normalizedFamily)) {
+      return fontWeightSupportCache.get(normalizedFamily);
+    }
+    if (!isFontInstalled(family)) {
+      fontWeightSupportCache.set(normalizedFamily, false);
+      return false;
+    }
+
+    const measuredWidths = ['300', '400', '500', '700'].map((weight) => measureFontWeightWidth(family, weight));
+    const supportsMultipleWeights = measuredWidths.some((width, index) =>
+      measuredWidths.slice(index + 1).some((otherWidth) => Math.abs(width - otherWidth) > 0.25)
+    );
+    fontWeightSupportCache.set(normalizedFamily, supportsMultipleWeights);
+    return supportsMultipleWeights;
+  };
+
+  const updateFontAvailabilityState = (key) => {
+    const input = elements[key];
+    const status = fontStatusElements[key];
+    if (!input || !status) return;
+
+    const resolvedFont = resolveFontSetting(input.value);
+    const { css, preferredFamily } = resolvedFont;
+
+    if (!css || !preferredFamily || isFontInstalled(preferredFamily)) {
+      input.classList.remove('font-missing');
+      status.textContent = '';
+      return;
+    }
+
+    input.classList.add('font-missing');
+    status.textContent = `${preferredFamily} is not installed on this system, so a fallback font will be used.`;
+  };
+
+  const syncFontPresetSelection = (key) => {
+    const input = elements[key];
+    const select = fontPresetElements[key];
+    if (!input || !select) return;
+
+    const label = formatFontSettingForUi(input.value);
+    if (!label) {
+      select.value = '';
+      return;
+    }
+
+    const preset = fontPresetByLabel.get(normalizeFontLabel(label));
+    select.value = preset ? preset.label : '__custom__';
+  };
+
+  const updateFontWeightControlState = (weightKey) => {
+    const config = FONT_WEIGHT_CONFIG[weightKey];
+    const control = elements[weightKey];
+    const status = fontWeightStatusElements[weightKey];
+    if (!config || !control || !status) return;
+
+    const fontValue = elements[config.fontKey] ? elements[config.fontKey].value : '';
+    const { css, preferredFamily } = resolveFontSetting(fontValue);
+
+    let enabled = true;
+    let reason = '';
+    if (css) {
+      if (!preferredFamily || !isFontInstalled(preferredFamily)) {
+        enabled = false;
+        reason = 'Weight options stay inactive until the selected font is available locally.';
+      } else if (!fontSupportsMultipleWeights(preferredFamily)) {
+        enabled = false;
+        reason = `${preferredFamily} does not expose multiple weights on this system.`;
+      }
+    }
+
+    if (enabled) {
+      if (control.dataset.manualValue && !control.value) {
+        control.value = control.dataset.manualValue;
+      }
+      delete control.dataset.manualValue;
+      control.disabled = false;
+      control.removeAttribute('title');
+      status.textContent = '';
+      if (config.row) config.row.classList.remove('is-disabled');
+      return;
+    }
+
+    if (!control.dataset.manualValue) {
+      control.dataset.manualValue = control.value;
+    }
+    control.value = '';
+    control.disabled = true;
+    control.title = reason;
+    status.textContent = reason;
+    if (config.row) config.row.classList.add('is-disabled');
+  };
+
+  const updateAllFontUiStates = () => {
+    for (const key of FONT_INPUT_KEYS) {
+      syncFontPresetSelection(key);
+      updateFontAvailabilityState(key);
+      const weightKey = FONT_WEIGHT_BY_FONT_KEY[key];
+      if (weightKey) updateFontWeightControlState(weightKey);
+    }
   };
 
   const renderOrderList = (value) => {
@@ -219,27 +512,71 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!elements.playerInfoLayout || !elements.customPlayerOrder) return;
     const customEnabled = Boolean(elements.customPlayerOrder.checked);
     if (customEnabled) {
+      if (!elements.playerInfoLayout.dataset.manualValue) {
+        elements.playerInfoLayout.dataset.manualValue = elements.playerInfoLayout.value;
+      }
       elements.playerInfoLayout.value = 'inline';
       elements.playerInfoLayout.disabled = true;
-      elements.playerInfoLayout.title = 'Custom order requires "Right of Name" layout';
+      elements.playerInfoLayout.title = 'Disable "Custom Item Order" to switch back to "Below Name".';
+      if (playerInfoLayoutRow) playerInfoLayoutRow.classList.add('is-locked', 'is-disabled');
     } else {
+      if (elements.playerInfoLayout.dataset.manualValue) {
+        elements.playerInfoLayout.value = elements.playerInfoLayout.dataset.manualValue;
+        delete elements.playerInfoLayout.dataset.manualValue;
+      }
       elements.playerInfoLayout.disabled = false;
       elements.playerInfoLayout.removeAttribute('title');
+      if (playerInfoLayoutRow) playerInfoLayoutRow.classList.remove('is-locked', 'is-disabled');
+      if (playerInfoLayoutLockNotice) {
+        playerInfoLayoutLockNotice.classList.remove('is-visible');
+        playerInfoLayoutLockNotice.textContent = '';
+      }
+    }
+  };
+
+  const showPlayerInfoLayoutLockNotice = () => {
+    if (!playerInfoLayoutLockNotice || !elements.playerInfoLayout || !elements.playerInfoLayout.disabled) return;
+    playerInfoLayoutLockNotice.textContent = 'Disable "Custom Item Order" if you want to switch this dropdown back to "Below Name".';
+    playerInfoLayoutLockNotice.classList.add('is-visible');
+    if (layoutLockNoticeTimer) clearTimeout(layoutLockNoticeTimer);
+    layoutLockNoticeTimer = window.setTimeout(() => {
+      playerInfoLayoutLockNotice.classList.remove('is-visible');
+      playerInfoLayoutLockNotice.textContent = '';
+    }, 2600);
+  };
+
+  const syncProfileBackgroundControls = () => {
+    if (!elements.hideProfileBg || !elements.useCustomProfileBgColor || !elements.profileBgColor) return;
+
+    const profileHidden = Boolean(elements.hideProfileBg.checked);
+    const customColorEnabled = Boolean(elements.useCustomProfileBgColor.checked);
+
+    elements.useCustomProfileBgColor.disabled = profileHidden;
+    elements.profileBgColor.disabled = profileHidden || !customColorEnabled;
+
+    if (useCustomProfileBgColorRow) {
+      useCustomProfileBgColorRow.classList.toggle('is-disabled', profileHidden);
+    }
+    if (profileBgColorRow) {
+      profileBgColorRow.classList.toggle('is-disabled', profileHidden || !customColorEnabled);
     }
   };
 
   const collectSettingsFromUi = () => {
     syncCustomOrderLayoutLock();
+    syncProfileBackgroundControls();
     const settings = {};
     for (const key in elements) {
       if (elements[key].type === 'checkbox') {
         settings[key] = elements[key].checked;
+      } else if (FONT_INPUT_KEYS.has(key)) {
+        settings[key] = canonicalizeFontSetting(elements[key].value);
       } else {
         settings[key] = elements[key].value;
       }
     }
-    if (settings.customPlayerOrder) {
-      settings.playerInfoLayout = 'inline';
+    if (elements.playerInfoLayout) {
+      settings.playerInfoLayout = elements.playerInfoLayout.dataset.manualValue || elements.playerInfoLayout.value;
     }
     settings.playerOrderList = getOrderValue();
     return settings;
@@ -265,6 +602,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (settings[key] === undefined) continue;
       if (elements[key].type === 'checkbox') {
         elements[key].checked = Boolean(settings[key]);
+      } else if (FONT_INPUT_KEYS.has(key)) {
+        elements[key].value = formatFontSettingForUi(settings[key]);
       } else {
         elements[key].value = String(settings[key]);
       }
@@ -275,7 +614,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     syncCustomOrderLayoutLock();
+    syncProfileBackgroundControls();
     updateSliderLabels();
+    updateAllFontUiStates();
   };
 
   const toCssSettingName = (key) => key.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`);
@@ -389,16 +730,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const baseSize = parseNumber(settings.profileItemSize, parseNumber(defaults.profileItemSize, 14));
     const emSize = baseSize / 14;
+    const resolvedNameFont = resolveFontCssValue(settings.nameFont);
+    const resolvedClockFont = resolveFontCssValue(settings.clockFont);
 
     setVar('--bc-page-bg', settings.pageBgColor || defaults.pageBgColor);
     setVar('--bc-display-header', settings.hideHeader ? 'none' : 'flex');
-    setVar('--bc-display-chat', settings.hideChat ? 'none' : 'flex');
+    setVar('--bc-display-liveboard', settings.hideChat ? 'none' : 'flex');
     setVar('--bc-display-move-table', settings.hideMoveTable ? 'none' : 'flex');
     setVar('--bc-display-side', settings.hideSide ? 'none' : 'flex');
     setVar('--bc-display-clocks', settings.hideClocks ? 'none' : 'flex');
     setVar('--bc-display-underboard', settings.hideUnderboard ? 'none' : 'block');
     setVar('--bc-display-eval', settings.hideEval ? 'none' : 'block');
-    setVar('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'initial');
+    setVar('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'flex');
     setVar('--bc-display-board-resize-handle', settings.hideBoardResizeHandle ? 'none' : 'initial');
     setVar('--bc-player-order-gap-12', `${Math.max(0, parseNumber(settings.playerOrderGap12, parseNumber(defaults.playerOrderGap12, 6)))}px`);
     setVar('--bc-player-order-gap-23', `${Math.max(0, parseNumber(settings.playerOrderGap23, parseNumber(defaults.playerOrderGap23, 6)))}px`);
@@ -433,10 +776,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (settings.hideFlagOption) setVar('--bc-display-flag', 'none');
     setVar('--bc-display-rating', settings.hideRatingOption ? 'none' : 'inline');
     setVar('--bc-display-material', settings.hideMaterial ? 'none' : 'flex');
+    if (!settings.hideProfileBg && settings.useCustomProfileBgColor) {
+      setVar('--bc-profile-bg', settings.profileBgColor || defaults.profileBgColor);
+    }
     setVar('--bc-photo-radius', `${Math.max(0, parseNumber(settings.photoRadius, parseNumber(defaults.photoRadius, 0)))}px`);
     setVar('--bc-player-margin', `${Math.max(0, parseNumber(settings.playerMargin, parseNumber(defaults.playerMargin, 0)))}px`);
 
-    setVar('--bc-name-font', settings.nameFont || 'inherit');
+    setVar('--bc-name-font', resolvedNameFont || 'inherit');
+    if (settings.nameFontWeight) setVar('--bc-name-font-weight', settings.nameFontWeight);
     if (settings.scaleTitle) setVar('--bc-title-size', `${emSize}em`);
     if (settings.scaleName) setVar('--bc-name-size', `${baseSize}px`);
     if (settings.scaleRating) setVar('--bc-rating-size', `${emSize * 0.9}em`);
@@ -449,7 +796,8 @@ document.addEventListener("DOMContentLoaded", () => {
       colorWithOpacity(settings.ratingColor, settings.ratingOpacity, defaults.ratingColor, defaults.ratingOpacity)
     );
 
-    setVar('--bc-clock-font', settings.clockFont || 'inherit');
+    setVar('--bc-clock-font', resolvedClockFont || 'inherit');
+    if (settings.clockFontWeight) setVar('--bc-clock-font-weight', settings.clockFontWeight);
     setVar('--bc-clock-radius', `${Math.max(0, parseNumber(settings.clockRadius, parseNumber(defaults.clockRadius, 3)))}px`);
     setVar('--bc-clock-border-width', `${Math.max(0, parseNumber(settings.clockBorderWidth, parseNumber(defaults.clockBorderWidth, 0)))}px`);
     setVar(
@@ -474,37 +822,16 @@ document.addEventListener("DOMContentLoaded", () => {
       colorWithOpacity(settings.clockBlackBgColor, settings.clockBlackBgOpacity, defaults.clockBlackBgColor, defaults.clockBlackBgOpacity)
     );
 
-    let flagRadius = '3px';
-    let flagDisplay = 'inline-block';
-    let flagWidth = '1em';
-    let flagHeight = '1em';
     const targetFlagSize = settings.scaleFlag ? `${emSize}em` : '1em';
-
-    if (settings.flagShape === 'circle') {
-      flagRadius = '50%';
-      flagWidth = targetFlagSize;
-      flagHeight = targetFlagSize;
-    } else if (settings.flagShape === 'square') {
-      flagRadius = '0';
-      flagWidth = targetFlagSize;
-      flagHeight = targetFlagSize;
-    } else if (settings.flagShape === 'hidden') {
-      flagDisplay = 'none';
-    } else if (settings.scaleFlag) {
-      flagWidth = targetFlagSize;
-      flagHeight = targetFlagSize;
-    }
-
-    setVar('--bc-flag-radius', flagRadius);
-    setVar('--bc-flag-width', flagWidth);
-    setVar('--bc-flag-height', flagHeight);
-    setVar('--bc-flag-display', flagDisplay);
+    setVar('--bc-flag-width', targetFlagSize);
+    setVar('--bc-flag-height', targetFlagSize);
 
     return vars;
   };
 
   const buildStandaloneActivationRules = (settings) => {
     const rules = [];
+    const customOrder = sanitizeOrderValue(settings.playerOrderList);
 
     if (settings.useCustomBoardColors) {
       rules.push(`
@@ -525,7 +852,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (settings.customPlayerOrder) {
-      const order = sanitizeOrderValue(settings.playerOrderList);
+      const order = customOrder;
       const orderMap = {
         title: order.indexOf('title') + 1,
         name: order.indexOf('name') + 1,
@@ -537,7 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
 .relay-board-player .info-split {
   display: flex !important;
   flex-direction: row !important;
-  align-items: center !important;
+  align-items: baseline !important;
   justify-content: flex-start !important;
   gap: 0 !important;
   flex-wrap: nowrap !important;
@@ -550,30 +877,32 @@ document.addEventListener("DOMContentLoaded", () => {
   order: ${orderMap.title};
   margin-inline-start: ${orderMap.title === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.title === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.title === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
   display: inline-flex !important;
-  align-items: center !important;
+  align-items: baseline !important;
   line-height: 1 !important;
 }
 .relay-board-player .info-split .name {
   order: ${orderMap.name};
   margin-inline-start: ${orderMap.name === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.name === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.name === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
   display: inline-flex !important;
-  align-items: center !important;
+  align-items: baseline !important;
   line-height: 1 !important;
 }
 .relay-board-player .info-split .mini-game__flag {
   order: ${orderMap.flag};
   margin-inline-start: ${orderMap.flag === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.flag === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.flag === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
   margin-inline-end: 0 !important;
-  transform: translateY(0) !important;
-  vertical-align: middle !important;
+  width: calc(var(--bc-flag-width, 1em) * 0.9) !important;
+  height: calc(var(--bc-flag-height, 1em) * 0.9) !important;
+  transform: translateY(15%) !important;
+  vertical-align: text-bottom !important;
 }
 .relay-board-player .info-split .elo {
   order: ${orderMap.rating};
   margin-inline-start: ${orderMap.rating === 2 ? 'var(--bc-player-order-gap-12, 6px)' : orderMap.rating === 3 ? 'var(--bc-player-order-gap-23, 6px)' : orderMap.rating === 4 ? 'var(--bc-player-order-gap-34, 6px)' : '0'} !important;
   display: inline-flex !important;
-  align-items: center !important;
+  align-items: baseline !important;
   line-height: 1 !important;
-  transform: translateY(0) !important;
+  font-size: var(--bc-rating-size, 0.9em) !important;
 }`);
     } else if (settings.playerInfoLayout === 'inline') {
       rules.push(`
@@ -716,7 +1045,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const saveAndNotify = () => {
+    syncCustomOrderLayoutLock();
+    syncProfileBackgroundControls();
     updateSliderLabels();
+    updateAllFontUiStates();
     const settings = collectSettingsFromUi();
 
     chrome.storage.sync.set(settings, () => {
@@ -746,6 +1078,41 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSliderLabels();
     saveAndNotify();
   });
+
+  for (const key of FONT_INPUT_KEYS) {
+    const input = elements[key];
+    if (!input) continue;
+    const syncFontUi = () => {
+      syncFontPresetSelection(key);
+      updateFontAvailabilityState(key);
+      const weightKey = FONT_WEIGHT_BY_FONT_KEY[key];
+      if (weightKey) updateFontWeightControlState(weightKey);
+    };
+    input.addEventListener('input', syncFontUi);
+    input.addEventListener('change', syncFontUi);
+  }
+
+  for (const key in fontPresetElements) {
+    const select = fontPresetElements[key];
+    if (!select) continue;
+    select.addEventListener('change', () => {
+      if (select.value === '') {
+        elements[key].value = '';
+      } else if (select.value !== '__custom__') {
+        elements[key].value = select.value;
+      }
+
+      syncFontPresetSelection(key);
+      updateFontAvailabilityState(key);
+      const weightKey = FONT_WEIGHT_BY_FONT_KEY[key];
+      if (weightKey) updateFontWeightControlState(weightKey);
+      saveAndNotify();
+
+      if (select.value === '__custom__') {
+        elements[key].focus();
+      }
+    });
+  }
 
   for (const key in elements) {
     elements[key].addEventListener('change', saveAndNotify);
@@ -789,6 +1156,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const defaults = getDefaultSettings();
       applySettingsToUi(defaults);
       saveAndNotify();
+    });
+  }
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => {
+      updateAllFontUiStates();
+    }).catch(() => {});
+  }
+
+  if (playerInfoLayoutRow) {
+    playerInfoLayoutRow.addEventListener('click', () => {
+      showPlayerInfoLayoutLockNotice();
     });
   }
 
