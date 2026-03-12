@@ -222,6 +222,17 @@ main.analyse.is-relay .mchat-mod + .vertical-resize {
     stroke: var(--bc-arrow-quaternary-color, #e68f00) !important;
 }
 
+.analyse__board.main-board svg.cg-shapes defs marker[cgKey="pb"] path,
+.analyse__board.main-board svg.cg-shapes defs marker[cgKey="paleBlue"] path {
+    fill: var(--bc-engine-arrow-color, rgba(0, 48, 136, 0.4)) !important;
+}
+
+.analyse__board.main-board svg.cg-shapes [marker-end*="arrowhead-pb"],
+.analyse__board.main-board svg.cg-shapes [marker-end*="arrowhead-paleBlue"] {
+    stroke: var(--bc-engine-arrow-color, rgba(0, 48, 136, 0.4)) !important;
+    opacity: 1 !important;
+}
+
 .analyse__board.main-board square.last-move {
     background-color: var(--bc-last-move-color, rgba(155, 199, 0, 0.41)) !important;
 }
@@ -558,6 +569,8 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic >
     column-gap: var(--bc-liveboard-eval-gap, 4px) !important;
     margin: 0 !important;
     width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge,
@@ -570,6 +583,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     border-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
     overflow: hidden !important;
     position: relative !important;
+    box-sizing: border-box !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before,
@@ -610,6 +624,7 @@ main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini
 main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__board {
     flex: 1 1 auto !important;
     min-width: 0 !important;
+    box-sizing: border-box !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__board .cg-wrap,
@@ -629,6 +644,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile-wrap {
     width: 100% !important;
     height: calc(var(--bc-liveboard-scale, 0.82) * var(--bc-player-profile-height, 45px)) !important;
     overflow: visible !important;
+    box-sizing: border-box !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile.relay-board-player,
@@ -643,6 +659,15 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.relay-boa
     margin: 0 !important;
     transform: scale(var(--bc-liveboard-scale, 0.82)) !important;
     transform-origin: top left !important;
+    box-sizing: border-box !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .left,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .left {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    gap: 0.7em !important;
+    overflow: hidden !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .name,
@@ -658,6 +683,10 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .name {
     align-items: center !important;
     line-height: 1.15 !important;
     padding-bottom: 0.06em !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .utitle,
@@ -672,31 +701,48 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .utitle {
     display: inline-flex !important;
     align-items: center !important;
     line-height: 1.12 !important;
+    flex: 0 0 auto !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .info-split,
 main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .info-split {
+    display: flex !important;
+    flex: 1 1 auto !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: flex-start !important;
     gap: 0 !important;
     height: auto !important;
     min-height: 0 !important;
-    overflow: visible !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .info-split > div,
 main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .info-split > div {
     display: inline-flex !important;
     align-items: center !important;
-    overflow: visible !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .info-split > div:first-child,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .info-split > div:first-child {
+    flex: 1 1 auto !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .info-secondary,
 main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .info-secondary {
+    flex: 0 0 auto !important;
     gap: 0 !important;
     margin-inline-start: 0.35em !important;
     font-size: 1em !important;
+}
+
+main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile.bc-liveboard-auto-hide-flag .info-secondary,
+main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.bc-liveboard-auto-hide-flag .info-secondary {
+    display: none !important;
+    margin-inline-start: 0 !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .mini-game__flag,
@@ -734,9 +780,14 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .analyse_
     ) !important;
     font-variant-numeric: tabular-nums lining-nums !important;
     border-radius: var(--bc-liveboard-clock-radius, var(--bc-clock-radius, 3px)) !important;
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    margin-inline-start: auto !important;
     align-items: center !important;
     justify-content: center !important;
     line-height: 1.12 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile.relay-board-player-top .analyse__clock,

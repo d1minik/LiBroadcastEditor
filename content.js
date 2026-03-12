@@ -26,6 +26,8 @@ const defaultSettings = {
   arrowSecondaryColor: '#882020',
   arrowTertiaryColor: '#003088',
   arrowQuaternaryColor: '#e68f00',
+  engineArrowColor: '#003088',
+  engineArrowOpacity: '40',
   boardRadius: '6',
   lastMoveColor: '#9bc700',
   lastMoveOpacity: '41',
@@ -113,6 +115,7 @@ let playerOrderObserver = null;
 let playerOrderRaf = 0;
 let liveboardObserver = null;
 let liveboardRaf = 0;
+let liveboardResizeBound = false;
 const FONT_PRESETS = [
   { label: 'Noto Sans', css: "'Noto Sans', sans-serif" },
   { label: 'Roboto', css: 'Roboto, sans-serif' },
@@ -194,15 +197,23 @@ function resolveFontCssValue(value) {
 }
 
 function normalizePlayerOrderList(value) {
+  const normalizeOrderToken = (item) => {
+    const trimmed = String(item || '').trim().toLowerCase();
+    const compact = trimmed.replace(/[\s+_-]/g, '');
+    if (trimmed === 'title' || trimmed === 'name') return 'titleName';
+    if (trimmed === 'flag' || compact === 'flag') return 'flag';
+    if (trimmed === 'rating' || compact === 'rating') return 'rating';
+    if (trimmed === 'titlename' || compact === 'titlename') return 'titleName';
+    return '';
+  };
   const raw = String(value || '')
     .split(',')
-    .map((item) => item.trim().toLowerCase())
-    .filter((item) => PLAYER_ORDER_ITEMS.includes(item) || LEGACY_PLAYER_ORDER_ITEMS.includes(item));
+    .map((item) => normalizeOrderToken(item))
+    .filter(Boolean);
 
   const unique = [];
   for (const item of raw) {
-    const mappedItem = item === 'title' || item === 'name' ? 'titleName' : item;
-    if (!unique.includes(mappedItem)) unique.push(mappedItem);
+    if (!unique.includes(item)) unique.push(item);
   }
   for (const item of PLAYER_ORDER_ITEMS) {
     if (!unique.includes(item)) unique.push(item);
@@ -404,6 +415,41 @@ function normalizeLiveboardProfileClone(profileClone) {
   if (secondary.childNodes.length) infoSplit.appendChild(secondary);
 }
 
+function getLiveboardScale() {
+  const scaleValue = Number.parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--bc-liveboard-scale')
+  );
+  return Number.isFinite(scaleValue) && scaleValue > 0 ? scaleValue : 0.82;
+}
+
+function syncLiveboardProfileWrapLayout(wrap) {
+  if (!wrap) return;
+  const profile = wrap.querySelector('.bc-liveboard-profile.relay-board-player');
+  if (!profile) return;
+
+  const scale = getLiveboardScale();
+  const wrapWidth = wrap.getBoundingClientRect().width;
+  if (wrapWidth > 0 && scale > 0) {
+    profile.style.width = `${wrapWidth / scale}px`;
+  } else {
+    profile.style.removeProperty('width');
+  }
+
+  profile.classList.remove('bc-liveboard-auto-hide-flag');
+  if (latestSettings.hideLiveboardFlag) return;
+
+  const infoSplit = profile.querySelector('.info-split');
+  if (!infoSplit || !profile.querySelector('.mini-game__flag')) return;
+  if (infoSplit.scrollWidth - infoSplit.clientWidth > 1) {
+    profile.classList.add('bc-liveboard-auto-hide-flag');
+  }
+}
+
+function syncLiveboardProfileLayouts(liveboardGame) {
+  if (!liveboardGame) return;
+  liveboardGame.querySelectorAll('.bc-liveboard-profile-wrap').forEach(syncLiveboardProfileWrapLayout);
+}
+
 function syncLiveboardProfileWrap(liveboardGame, sourceProfile, wrapClass, beforeNode) {
   const existingWrap = Array.from(liveboardGame.children).find(
     (child) => child.classList && child.classList.contains(wrapClass)
@@ -448,6 +494,7 @@ function syncLiveboardGame(liveboardGame) {
 
   syncLiveboardProfileWrap(liveboardGame, topSource, 'bc-liveboard-profile-top', topRow);
   syncLiveboardProfileWrap(liveboardGame, bottomSource, 'bc-liveboard-profile-bot', bottomRow);
+  syncLiveboardProfileLayouts(liveboardGame);
 }
 
 function syncLiveboardProfiles() {
@@ -483,6 +530,12 @@ function ensureLiveboardObserver() {
     attributes: true,
     attributeFilter: ['class', 'style']
   });
+}
+
+function ensureLiveboardResizeListener() {
+  if (liveboardResizeBound) return;
+  window.addEventListener('resize', scheduleLiveboardSync, { passive: true });
+  liveboardResizeBound = true;
 }
 
 function applySettings(settings) {
@@ -642,6 +695,14 @@ function applySettings(settings) {
   root.style.setProperty('--bc-arrow-tertiary-color', settings.arrowTertiaryColor || defaultSettings.arrowTertiaryColor);
   root.style.setProperty('--bc-arrow-quaternary-color', settings.arrowQuaternaryColor || defaultSettings.arrowQuaternaryColor);
   root.style.setProperty(
+    '--bc-engine-arrow-color',
+    colorWithOpacity(
+      settings.engineArrowColor,
+      parseOpacity(settings.engineArrowOpacity, parseNumber(defaultSettings.engineArrowOpacity, 40)),
+      defaultSettings.engineArrowColor
+    )
+  );
+  root.style.setProperty(
     '--bc-last-move-color',
     colorWithOpacity(settings.lastMoveColor, lastMoveOpacity, defaultSettings.lastMoveColor)
   );
@@ -692,6 +753,7 @@ function applySettings(settings) {
   ensurePlayerOrderObserver();
   scheduleLiveboardSync();
   ensureLiveboardObserver();
+  ensureLiveboardResizeListener();
 
   // Typography & Colors
   const resolvedNameFont = resolveFontCssValue(settings.nameFont);

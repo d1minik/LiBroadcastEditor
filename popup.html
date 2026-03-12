@@ -408,6 +408,17 @@
         <span class="setting-label">Arrow Quaternary</span>
         <input type="color" id="arrowQuaternaryColor" value="#e68f00">
       </div>
+      <div class="setting-row">
+        <span class="setting-label">Suggested Move</span>
+        <input type="color" id="engineArrowColor" value="#003088">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Suggested Move Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="engineArrowOpacity" min="0" max="100" value="40">
+          <span class="range-val" id="engineArrowOpacityVal">40</span>
+        </div>
+      </div>
     </div>
 
     <div class="subgroup green">
@@ -856,24 +867,36 @@
 
     <div class="subgroup cool">
       <div class="subgroup-title">Shape</div>
-      <div class="subgroup-note">Leave a field empty to inherit the matching main board radius.</div>
+      <div class="subgroup-note">Defaults follow the matching main board radius until you change a slider or restore defaults.</div>
       <div class="detail-box">
         <div class="detail-box-title">Radii</div>
         <div class="setting-row">
           <span class="setting-label">Photo Radius</span>
-          <input type="number" id="liveboardPhotoRadius" min="0" max="50" step="1" placeholder="Main Board">
+          <div class="range-wrap">
+            <input type="range" id="liveboardPhotoRadius" min="0" max="50" value="0">
+            <span class="range-val" id="liveboardPhotoRadiusVal">0</span>
+          </div>
         </div>
         <div class="setting-row">
           <span class="setting-label">Board Radius</span>
-          <input type="number" id="liveboardBoardRadius" min="0" max="50" step="1" placeholder="Main Board">
+          <div class="range-wrap">
+            <input type="range" id="liveboardBoardRadius" min="0" max="50" value="6">
+            <span class="range-val" id="liveboardBoardRadiusVal">6</span>
+          </div>
         </div>
         <div class="setting-row">
           <span class="setting-label">Eval Bar Radius</span>
-          <input type="number" id="liveboardEvalBarRadius" min="0" max="50" step="1" placeholder="Main Board">
+          <div class="range-wrap">
+            <input type="range" id="liveboardEvalBarRadius" min="0" max="50" value="0">
+            <span class="range-val" id="liveboardEvalBarRadiusVal">0</span>
+          </div>
         </div>
         <div class="setting-row">
           <span class="setting-label">Clock Radius</span>
-          <input type="number" id="liveboardClockRadius" min="0" max="50" step="1" placeholder="Main Board">
+          <div class="range-wrap">
+            <input type="range" id="liveboardClockRadius" min="0" max="50" value="3">
+            <span class="range-val" id="liveboardClockRadiusVal">3</span>
+          </div>
         </div>
       </div>
       <div class="detail-box">
@@ -1027,7 +1050,7 @@
     </div>
   </div>
 
-  <div class="popup-footer"><a href="https://github.com/d1minik" target="_blank" rel="noopener noreferrer">@d1minik</a></div>
+  <div class="popup-footer"><a href="https://github.com/d1minik" target="_blank" rel="noopener noreferrer">made by @d1minik</a></div>
   <input type="file" id="importCssFileInput" accept=".css,text/css" style="display: none;">
   <script src="popup.js"></script>
 </body>

@@ -19,6 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
     arrowSecondaryColor: document.getElementById('arrowSecondaryColor'),
     arrowTertiaryColor: document.getElementById('arrowTertiaryColor'),
     arrowQuaternaryColor: document.getElementById('arrowQuaternaryColor'),
+    engineArrowColor: document.getElementById('engineArrowColor'),
+    engineArrowOpacity: document.getElementById('engineArrowOpacity'),
     boardRadius: document.getElementById('boardRadius'),
     lastMoveColor: document.getElementById('lastMoveColor'),
     lastMoveOpacity: document.getElementById('lastMoveOpacity'),
@@ -157,6 +159,12 @@ document.addEventListener("DOMContentLoaded", () => {
     flag: ['flag'],
     rating: ['rating']
   };
+  const LIVEBOARD_RADIUS_INHERIT_MAP = {
+    liveboardPhotoRadius: 'photoRadius',
+    liveboardBoardRadius: 'boardRadius',
+    liveboardEvalBarRadius: 'evalBarRadius',
+    liveboardClockRadius: 'clockRadius'
+  };
   const ORDER_PART_LABELS = {
     title: 'Title',
     name: 'Name',
@@ -212,6 +220,8 @@ document.addEventListener("DOMContentLoaded", () => {
     arrowSecondaryColor: '#882020',
     arrowTertiaryColor: '#003088',
     arrowQuaternaryColor: '#e68f00',
+    engineArrowColor: '#003088',
+    engineArrowOpacity: '40',
     boardRadius: '6',
     lastMoveColor: '#9bc700',
     lastMoveOpacity: '41',
@@ -335,15 +345,23 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const sanitizeOrderValue = (value) => {
+    const normalizeOrderToken = (item) => {
+      const trimmed = String(item || '').trim().toLowerCase();
+      const compact = trimmed.replace(/[\s+_-]/g, '');
+      if (trimmed === 'title' || trimmed === 'name') return 'titleName';
+      if (trimmed === 'flag' || compact === 'flag') return 'flag';
+      if (trimmed === 'rating' || compact === 'rating') return 'rating';
+      if (trimmed === 'titlename' || compact === 'titlename') return 'titleName';
+      return '';
+    };
     const list = String(value || '')
       .split(',')
-      .map((item) => item.trim().toLowerCase())
-      .filter((item) => ORDER_ITEMS.includes(item) || LEGACY_ORDER_ITEMS.includes(item));
+      .map((item) => normalizeOrderToken(item))
+      .filter(Boolean);
 
     const unique = [];
     for (const item of list) {
-      const mappedItem = item === 'title' || item === 'name' ? 'titleName' : item;
-      if (!unique.includes(mappedItem)) unique.push(mappedItem);
+      if (!unique.includes(item)) unique.push(item);
     }
     for (const item of ORDER_ITEMS) {
       if (!unique.includes(item)) unique.push(item);
@@ -817,6 +835,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const syncInheritedLiveboardRadiusControls = () => {
+    for (const [liveboardKey, sourceKey] of Object.entries(LIVEBOARD_RADIUS_INHERIT_MAP)) {
+      const liveboardControl = elements[liveboardKey];
+      if (!liveboardControl) continue;
+
+      if (liveboardControl.dataset.inherit === '0') continue;
+
+      const sourceControl = elements[sourceKey];
+      const sourceValue = sourceControl ? String(sourceControl.value || DEFAULT_SETTINGS[sourceKey] || '0') : '0';
+      liveboardControl.value = sourceValue;
+      liveboardControl.dataset.inherit = '1';
+    }
+  };
+
   const syncLiveboardCustomControls = () => {
     return;
   };
@@ -826,11 +858,14 @@ document.addEventListener("DOMContentLoaded", () => {
     syncProfileBackgroundControls();
     syncLiveboardBackgroundControls();
     syncLiveboardBoardColorControls();
+    syncInheritedLiveboardRadiusControls();
     syncLiveboardCustomControls();
     const settings = {};
     for (const key in elements) {
       if (elements[key].type === 'checkbox') {
         settings[key] = elements[key].checked;
+      } else if (Object.prototype.hasOwnProperty.call(LIVEBOARD_RADIUS_INHERIT_MAP, key)) {
+        settings[key] = elements[key].dataset.inherit === '0' ? elements[key].value : '';
       } else if (FONT_INPUT_KEYS.has(key)) {
         settings[key] = canonicalizeFontSetting(elements[key].value);
       } else {
@@ -878,6 +913,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (settings[key] === undefined) continue;
       if (elements[key].type === 'checkbox') {
         elements[key].checked = Boolean(settings[key]);
+      } else if (Object.prototype.hasOwnProperty.call(LIVEBOARD_RADIUS_INHERIT_MAP, key)) {
+        if (String(settings[key] ?? '').trim() === '') {
+          elements[key].dataset.inherit = '1';
+        } else {
+          elements[key].value = String(settings[key]);
+          elements[key].dataset.inherit = '0';
+        }
       } else if (FONT_INPUT_KEYS.has(key)) {
         elements[key].value = formatFontSettingForUi(settings[key]);
       } else {
@@ -893,6 +935,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncProfileBackgroundControls();
     syncLiveboardBackgroundControls();
     syncLiveboardBoardColorControls();
+    syncInheritedLiveboardRadiusControls();
     updateSliderLabels();
     updateAllFontUiStates();
     syncLiveboardCustomControls();
@@ -1060,6 +1103,15 @@ document.addEventListener("DOMContentLoaded", () => {
     setVar('--bc-arrow-secondary-color', settings.arrowSecondaryColor || defaults.arrowSecondaryColor);
     setVar('--bc-arrow-tertiary-color', settings.arrowTertiaryColor || defaults.arrowTertiaryColor);
     setVar('--bc-arrow-quaternary-color', settings.arrowQuaternaryColor || defaults.arrowQuaternaryColor);
+    setVar(
+      '--bc-engine-arrow-color',
+      colorWithOpacity(
+        settings.engineArrowColor,
+        settings.engineArrowOpacity,
+        defaults.engineArrowColor,
+        defaults.engineArrowOpacity
+      )
+    );
     setVar(
       '--bc-last-move-color',
       colorWithOpacity(settings.lastMoveColor, settings.lastMoveOpacity, defaults.lastMoveColor, defaults.lastMoveOpacity)
@@ -1521,6 +1573,27 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     if (elements[key].type === 'text' || elements[key].type === 'number' || elements[key].type === 'range') {
       elements[key].addEventListener('input', saveAndNotify);
     }
+  }
+
+  for (const liveboardKey of Object.keys(LIVEBOARD_RADIUS_INHERIT_MAP)) {
+    const control = elements[liveboardKey];
+    if (!control) continue;
+    const markCustomized = () => {
+      control.dataset.inherit = '0';
+    };
+    control.addEventListener('input', markCustomized, true);
+    control.addEventListener('change', markCustomized, true);
+  }
+
+  for (const sourceKey of Object.values(LIVEBOARD_RADIUS_INHERIT_MAP)) {
+    const control = elements[sourceKey];
+    if (!control) continue;
+    const syncInheritedControls = () => {
+      syncInheritedLiveboardRadiusControls();
+      updateSliderLabels();
+    };
+    control.addEventListener('input', syncInheritedControls);
+    control.addEventListener('change', syncInheritedControls);
   }
 
   if (exportCssButton) {
