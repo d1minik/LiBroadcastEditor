@@ -435,7 +435,7 @@ html.light .analyse .eval-gauge::before {
 }
 
 .bc-layout-inline .analyse__board.main-board .relay-board-player .info-split > div:first-child {
-    flex: 1 1 auto !important;
+    flex: 0 1 auto !important;
 }
 
 .relay-board-player .info-secondary {
@@ -473,7 +473,7 @@ html.light .analyse .eval-gauge::before {
 
 .bc-player-order-custom .analyse__board.main-board .relay-board-player .info-split .bc-order-title-name {
     display: inline-flex !important;
-    flex: 1 1 auto !important;
+    flex: 0 1 auto !important;
     align-items: center !important;
     gap: 0 !important;
     min-width: 0 !important;
@@ -786,7 +786,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .info-spl
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .info-split > div:first-child,
 main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .info-split > div:first-child {
-    flex: 1 1 auto !important;
+    flex: 0 1 auto !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .info-secondary,
