@@ -47,6 +47,7 @@ const defaultSettings = {
   photoRadius: '0',
   playerMargin: '0',
   playerProfileHeight: '45',
+  playerProfileLeftMargin: '0',
   underboardMargin: '0',
   pageBgColor: '#161512',
   nameFont: '',
@@ -85,6 +86,8 @@ const defaultSettings = {
   liveboardBoardRadius: '',
   liveboardEvalBarRadius: '',
   liveboardClockRadius: '',
+  liveboardProfileHeight: '45',
+  liveboardProfileLeftMargin: '0',
   liveboardTextScale: '100',
   liveboardNameScale: '100',
   liveboardTitleScale: '100',
@@ -113,6 +116,7 @@ const PLAYER_ORDER_GAP_CLASSES = ['bc-gap-before-12', 'bc-gap-before-23', 'bc-ga
 let latestSettings = { ...defaultSettings };
 let playerOrderObserver = null;
 let playerOrderRaf = 0;
+let mainBoardProfileRaf = 0;
 let liveboardObserver = null;
 let liveboardRaf = 0;
 let liveboardResizeBound = false;
@@ -335,21 +339,67 @@ function applyPlayerOrderLayout(settings) {
   infoSplits.forEach((infoSplit) => applyCustomOrderToInfoSplit(infoSplit, order));
 }
 
+function syncMainBoardProfileLayout(profile) {
+  if (!profile) return;
+
+  profile.classList.remove('bc-mainboard-auto-hide-flag');
+  profile.querySelectorAll('.bc-mainboard-gap-after-hidden-flag').forEach((node) => {
+    node.classList.remove('bc-mainboard-gap-after-hidden-flag');
+  });
+
+  const infoSplit = profile.querySelector('.info-split');
+  const flagEl = infoSplit?.querySelector('.mini-game__flag');
+  if (!infoSplit || !flagEl) return;
+
+  const shouldForceHideFlag = Boolean(latestSettings.hideFlagOption);
+  const nameEl = infoSplit.querySelector('.name');
+  const nameIsTruncated = Boolean(nameEl) && nameEl.scrollWidth - nameEl.clientWidth > 1;
+  const infoOverflows = infoSplit.scrollWidth - infoSplit.clientWidth > 1;
+  if (!shouldForceHideFlag && !nameIsTruncated && !infoOverflows) return;
+
+  profile.classList.add('bc-mainboard-auto-hide-flag');
+  const flagOrderItem = infoSplit.querySelector('.bc-order-flag');
+  if (flagOrderItem?.nextElementSibling) {
+    flagOrderItem.nextElementSibling.classList.add('bc-mainboard-gap-after-hidden-flag');
+  }
+}
+
+function syncMainBoardProfileLayouts() {
+  const profiles = document.querySelectorAll('.analyse__board.main-board .relay-board-player');
+  if (!profiles.length) return;
+  profiles.forEach(syncMainBoardProfileLayout);
+}
+
+function scheduleMainBoardProfileSync() {
+  if (mainBoardProfileRaf) return;
+  mainBoardProfileRaf = requestAnimationFrame(() => {
+    mainBoardProfileRaf = 0;
+    syncMainBoardProfileLayouts();
+  });
+}
+
 function schedulePlayerOrderReapply() {
   if (playerOrderRaf) return;
   playerOrderRaf = requestAnimationFrame(() => {
     playerOrderRaf = 0;
     applyPlayerOrderLayout(latestSettings);
+    scheduleMainBoardProfileSync();
   });
 }
 
 function ensurePlayerOrderObserver() {
   if (playerOrderObserver || !document.body) return;
   playerOrderObserver = new MutationObserver(() => {
-    if (!latestSettings.customPlayerOrder) return;
-    schedulePlayerOrderReapply();
+    if (latestSettings.customPlayerOrder) {
+      schedulePlayerOrderReapply();
+    }
+    scheduleMainBoardProfileSync();
   });
-  playerOrderObserver.observe(document.body, { childList: true, subtree: true });
+  playerOrderObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
 }
 
 function activateLiveboardTab(chatBox) {
@@ -436,7 +486,10 @@ function syncLiveboardProfileWrapLayout(wrap) {
   }
 
   profile.classList.remove('bc-liveboard-auto-hide-flag');
-  if (latestSettings.hideLiveboardFlag) return;
+  if (latestSettings.hideLiveboardFlag) {
+    profile.classList.add('bc-liveboard-auto-hide-flag');
+    return;
+  }
 
   const infoSplit = profile.querySelector('.info-split');
   if (!infoSplit || !profile.querySelector('.mini-game__flag')) return;
@@ -534,7 +587,10 @@ function ensureLiveboardObserver() {
 
 function ensureLiveboardResizeListener() {
   if (liveboardResizeBound) return;
-  window.addEventListener('resize', scheduleLiveboardSync, { passive: true });
+  window.addEventListener('resize', () => {
+    scheduleLiveboardSync();
+    scheduleMainBoardProfileSync();
+  }, { passive: true });
   liveboardResizeBound = true;
 }
 
@@ -598,11 +654,11 @@ function applySettings(settings) {
   root.style.setProperty('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'flex');
   root.style.setProperty(
     '--bc-display-liveboard-photo',
-    settings.hideLiveboardPhoto ? 'none' : 'var(--bc-display-photo, block)'
+    settings.hideLiveboardPhoto ? 'none' : 'block'
   );
   root.style.setProperty(
     '--bc-display-liveboard-flag',
-    settings.hideLiveboardFlag ? 'none' : 'var(--bc-display-flag, inline-block)'
+    settings.hideLiveboardFlag ? 'none' : 'inline-block'
   );
   root.style.setProperty('--bc-display-underboard', settings.hideUnderboard ? 'none' : '');
   root.style.setProperty('--bc-display-eval', settings.hideEval ? 'none' : '');
@@ -733,8 +789,14 @@ function applySettings(settings) {
     45,
     parseNumber(settings.playerProfileHeight, parseNumber(defaultSettings.playerProfileHeight, 45))
   );
+  const playerProfileLeftMarginRaw = Math.max(
+    0,
+    parseNumber(settings.playerProfileLeftMargin, parseNumber(defaultSettings.playerProfileLeftMargin, 0))
+  );
+  const playerProfileLeftMargin = settings.hidePhoto && playerProfileLeftMarginRaw === 0 ? 12 : playerProfileLeftMarginRaw;
   root.style.setProperty('--bc-player-profile-height', `${playerProfileHeight}px`);
   root.style.setProperty('--bc-player-profile-extra-height', `${Math.max(0, playerProfileHeight - 45)}px`);
+  root.style.setProperty('--bc-player-left-pad', `${playerProfileLeftMargin}px`);
 
   const useCustomPlayerOrder = Boolean(settings.customPlayerOrder);
 
@@ -750,6 +812,7 @@ function applySettings(settings) {
     root.classList.remove('bc-layout-inline');
   }
   applyPlayerOrderLayout(settings);
+  syncMainBoardProfileLayouts();
   ensurePlayerOrderObserver();
   scheduleLiveboardSync();
   ensureLiveboardObserver();
@@ -878,6 +941,18 @@ function applySettings(settings) {
   const liveboardClockRadius = String(settings.liveboardClockRadius || '').trim() === ''
     ? NaN
     : parseNumber(settings.liveboardClockRadius, NaN);
+  const liveboardProfileHeight = Math.max(
+    45,
+    parseNumber(settings.liveboardProfileHeight, parseNumber(defaultSettings.liveboardProfileHeight, 45))
+  );
+  const liveboardProfileLeftMarginRaw = Math.max(
+    0,
+    parseNumber(settings.liveboardProfileLeftMargin, parseNumber(defaultSettings.liveboardProfileLeftMargin, 0))
+  );
+  const liveboardProfileLeftMargin =
+    settings.hideLiveboardPhoto && liveboardProfileLeftMarginRaw === 0 ? 12 : liveboardProfileLeftMarginRaw;
+  root.style.setProperty('--bc-liveboard-player-profile-height', `${liveboardProfileHeight}px`);
+  root.style.setProperty('--bc-liveboard-player-left-pad', `${liveboardProfileLeftMargin}px`);
   setOrRemoveProperty(
     '--bc-liveboard-photo-radius',
     Number.isFinite(liveboardPhotoRadius) && liveboardPhotoRadius >= 0 ? `${liveboardPhotoRadius}px` : ''

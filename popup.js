@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     photoRadius: document.getElementById('photoRadius'),
     playerMargin: document.getElementById('playerMargin'),
     playerProfileHeight: document.getElementById('playerProfileHeight'),
+    playerProfileLeftMargin: document.getElementById('playerProfileLeftMargin'),
     underboardMargin: document.getElementById('underboardMargin'),
     pageBgColor: document.getElementById('pageBgColor'),
     nameFont: document.getElementById('nameFont'),
@@ -85,6 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
     liveboardBoardRadius: document.getElementById('liveboardBoardRadius'),
     liveboardEvalBarRadius: document.getElementById('liveboardEvalBarRadius'),
     liveboardClockRadius: document.getElementById('liveboardClockRadius'),
+    liveboardProfileHeight: document.getElementById('liveboardProfileHeight'),
+    liveboardProfileLeftMargin: document.getElementById('liveboardProfileLeftMargin'),
     liveboardTextScale: document.getElementById('liveboardTextScale'),
     liveboardNameScale: document.getElementById('liveboardNameScale'),
     liveboardTitleScale: document.getElementById('liveboardTitleScale'),
@@ -249,6 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
     photoRadius: '0',
     playerMargin: '0',
     playerProfileHeight: '45',
+    playerProfileLeftMargin: '0',
     underboardMargin: '0',
     pageBgColor: '#161512',
     nameFont: '',
@@ -287,6 +291,8 @@ document.addEventListener("DOMContentLoaded", () => {
     liveboardBoardRadius: '',
     liveboardEvalBarRadius: '',
     liveboardClockRadius: '',
+    liveboardProfileHeight: '45',
+    liveboardProfileLeftMargin: '0',
     liveboardTextScale: '100',
     liveboardNameScale: '100',
     liveboardTitleScale: '100',
@@ -1073,8 +1079,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setVar('--bc-display-side', settings.hideSide ? 'none' : 'flex');
     setVar('--bc-display-main-clocks', settings.hideClocks ? 'none' : 'flex');
     setVar('--bc-display-liveboard-clocks', settings.hideLiveboardClocks ? 'none' : 'flex');
-    setVar('--bc-display-liveboard-photo', settings.hideLiveboardPhoto ? 'none' : 'var(--bc-display-photo, block)');
-    setVar('--bc-display-liveboard-flag', settings.hideLiveboardFlag ? 'none' : 'var(--bc-display-flag, inline-block)');
+    setVar('--bc-display-liveboard-photo', settings.hideLiveboardPhoto ? 'none' : 'block');
+    setVar('--bc-display-liveboard-flag', settings.hideLiveboardFlag ? 'none' : 'inline-block');
     setVar('--bc-display-underboard', settings.hideUnderboard ? 'none' : 'block');
     setVar('--bc-display-eval', settings.hideEval ? 'none' : 'block');
     setVar('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'flex');
@@ -1130,8 +1136,14 @@ document.addEventListener("DOMContentLoaded", () => {
       45,
       parseNumber(settings.playerProfileHeight, parseNumber(defaults.playerProfileHeight, 45))
     );
+    const playerProfileLeftMarginRaw = Math.max(
+      0,
+      parseNumber(settings.playerProfileLeftMargin, parseNumber(defaults.playerProfileLeftMargin, 0))
+    );
+    const playerProfileLeftMargin = settings.hidePhoto && playerProfileLeftMarginRaw === 0 ? 12 : playerProfileLeftMarginRaw;
     setVar('--bc-player-profile-height', `${playerProfileHeight}px`);
     setVar('--bc-player-profile-extra-height', `${Math.max(0, playerProfileHeight - 45)}px`);
+    setVar('--bc-player-left-pad', `${playerProfileLeftMargin}px`);
 
     setVar('--bc-name-font', resolvedNameFont || 'inherit');
     if (settings.nameFontWeight) setVar('--bc-name-font-weight', settings.nameFontWeight);
@@ -1202,6 +1214,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const liveboardClockRadius = String(settings.liveboardClockRadius || '').trim() === ''
       ? NaN
       : parseNumber(settings.liveboardClockRadius, NaN);
+    const liveboardProfileHeight = Math.max(
+      45,
+      parseNumber(settings.liveboardProfileHeight, parseNumber(defaults.liveboardProfileHeight, 45))
+    );
+    const liveboardProfileLeftMarginRaw = Math.max(
+      0,
+      parseNumber(settings.liveboardProfileLeftMargin, parseNumber(defaults.liveboardProfileLeftMargin, 0))
+    );
+    const liveboardProfileLeftMargin =
+      settings.hideLiveboardPhoto && liveboardProfileLeftMarginRaw === 0 ? 12 : liveboardProfileLeftMarginRaw;
+    setVar('--bc-liveboard-player-profile-height', `${liveboardProfileHeight}px`);
+    setVar('--bc-liveboard-player-left-pad', `${liveboardProfileLeftMargin}px`);
     if (Number.isFinite(liveboardPhotoRadius) && liveboardPhotoRadius >= 0) {
       setVar('--bc-liveboard-photo-radius', `${liveboardPhotoRadius}px`);
     }

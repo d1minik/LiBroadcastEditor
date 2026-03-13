@@ -110,6 +110,11 @@ main.analyse.is-relay .mchat-mod + .vertical-resize {
     box-shadow: inset 0 0 0 var(--bc-clock-border-width, 0px) var(--bc-clock-border-color, transparent) !important;
     outline: var(--bc-clock-border-width, 0px) solid var(--bc-clock-border-color, transparent) !important;
     outline-offset: calc(var(--bc-clock-border-width, 0px) * -1) !important;
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    margin-inline-start: auto !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums lining-nums !important;
 }
 
 .analyse__clock > i[data-icon] {
@@ -356,9 +361,13 @@ html.light .analyse .eval-gauge::before {
 .relay-board-player .left {
     display: flex !important;
     align-items: center !important;
+    flex: 1 1 auto !important;
     height: 100% !important;
     min-height: 100% !important;
-    overflow: visible !important;
+    min-width: 0 !important;
+    padding-inline-start: var(--bc-player-left-pad, 0px) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 .relay-board-player .name {
@@ -385,46 +394,61 @@ html.light .analyse .eval-gauge::before {
 
 .relay-board-player .info-split {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     justify-content: center;
     height: 100%;
     min-height: 0;
+    min-width: 0;
     line-height: 1.12;
     align-self: center;
-    overflow: visible !important;
+    overflow: hidden !important;
 }
 
 .relay-board-player .info-split > div {
     display: flex;
     align-items: center;
     min-height: 0;
-    overflow: visible !important;
+    min-width: 0;
+    overflow: hidden !important;
 }
 
 .bc-layout-inline .analyse__board.main-board .relay-board-player .info-split {
+    flex: 1 1 auto !important;
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
     height: auto;
     min-height: 0;
+    min-width: 0;
     align-self: center;
+    overflow: hidden !important;
 }
 
 .bc-layout-inline .analyse__board.main-board .relay-board-player .info-split > div {
     display: flex;
     align-items: center;
     gap: 4px;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+.bc-layout-inline .analyse__board.main-board .relay-board-player .info-split > div:first-child {
+    flex: 1 1 auto !important;
 }
 
 .relay-board-player .info-secondary {
     display: flex;
+    flex: 0 0 auto !important;
     align-items: center;
     gap: 4px;
+    min-width: 0 !important;
 }
 
 .bc-player-order-custom .analyse__board.main-board .relay-board-player .info-split {
     display: flex !important;
+    flex: 1 1 auto !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: flex-start !important;
@@ -432,11 +456,14 @@ html.light .analyse .eval-gauge::before {
     flex-wrap: nowrap !important;
     height: auto !important;
     min-height: 0 !important;
+    min-width: 0 !important;
     align-self: center !important;
+    overflow: hidden !important;
 }
 
 .bc-player-order-custom .analyse__board.main-board .relay-board-player .info-split .bc-order-item {
     display: inline-flex !important;
+    flex: 0 0 auto !important;
     align-items: center !important;
     align-self: center !important;
     gap: 0 !important;
@@ -446,8 +473,11 @@ html.light .analyse .eval-gauge::before {
 
 .bc-player-order-custom .analyse__board.main-board .relay-board-player .info-split .bc-order-title-name {
     display: inline-flex !important;
+    flex: 1 1 auto !important;
     align-items: center !important;
     gap: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
 }
 
 .bc-player-order-custom .analyse__board.main-board .relay-board-player .info-split .bc-order-flag,
@@ -497,20 +527,46 @@ html.light .analyse .eval-gauge::before {
 .relay-board-player .utitle,
 .relay-board-player .elo {
     display: inline-flex !important;
+    flex: 0 0 auto !important;
     align-items: center !important;
     line-height: 1.12 !important;
+}
+
+.analyse__board.main-board .relay-board-player .name,
+.bc-player-order-custom .analyse__board.main-board .relay-board-player .info-split .bc-order-title-name .name {
+    display: inline-flex !important;
+    flex: 1 1 auto !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 /* Flag Adjustments */
 .relay-board-player .mini-game__flag {
     display: var(--bc-display-flag, inline-block) !important;
     border-radius: 3px !important;
+    flex: 0 0 auto !important;
     width: var(--bc-flag-width, 1em) !important;
     height: var(--bc-flag-height, 1em) !important;
     object-fit: cover !important;
     align-self: center !important;
     vertical-align: middle !important;
     transform: none !important;
+}
+
+.analyse__board.main-board .relay-board-player.bc-mainboard-auto-hide-flag .mini-game__flag {
+    display: none !important;
+}
+
+.bc-player-order-custom .analyse__board.main-board .relay-board-player.bc-mainboard-auto-hide-flag .bc-order-flag {
+    display: none !important;
+}
+
+.bc-player-order-custom .analyse__board.main-board .relay-board-player.bc-mainboard-auto-hide-flag .bc-mainboard-gap-after-hidden-flag {
+    margin-inline-start: 0 !important;
 }
 
 /* Liveboard */
@@ -642,7 +698,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile-wrap {
     flex: 0 0 auto !important;
     display: block !important;
     width: 100% !important;
-    height: calc(var(--bc-liveboard-scale, 0.82) * var(--bc-player-profile-height, 45px)) !important;
+    height: calc(var(--bc-liveboard-scale, 0.82) * var(--bc-liveboard-player-profile-height, 45px)) !important;
     overflow: visible !important;
     box-sizing: border-box !important;
 }
@@ -654,6 +710,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.relay-boa
     top: auto !important;
     left: auto !important;
     right: auto !important;
+    height: var(--bc-liveboard-player-profile-height, 45px) !important;
     width: calc(100% / var(--bc-liveboard-scale, 0.82)) !important;
     max-width: none !important;
     margin: 0 !important;
@@ -667,6 +724,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .left {
     flex: 1 1 auto !important;
     min-width: 0 !important;
     gap: 0.7em !important;
+    padding-inline-start: var(--bc-liveboard-player-left-pad, 0px) !important;
     overflow: hidden !important;
 }
 
@@ -747,15 +805,18 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.bc-livebo
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .mini-game__flag,
 main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .mini-game__flag {
-    display: var(--bc-display-liveboard-flag, var(--bc-display-flag, inline-block)) !important;
+    display: var(--bc-display-liveboard-flag, inline-block) !important;
     width: calc(var(--bc-liveboard-flag-scale, 1) * var(--bc-flag-width, 1em)) !important;
     height: calc(var(--bc-liveboard-flag-scale, 1) * var(--bc-flag-height, 1em)) !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .relay-board-player__photo,
 main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile .relay-board-player__photo {
-    display: var(--bc-display-liveboard-photo, var(--bc-display-photo, block)) !important;
+    display: var(--bc-display-liveboard-photo, block) !important;
     border-radius: var(--bc-liveboard-photo-radius, var(--bc-photo-radius, inherit)) !important;
+    height: var(--bc-liveboard-player-profile-height, 45px) !important;
+    width: var(--bc-liveboard-player-profile-height, 45px) !important;
+    flex: 0 0 var(--bc-liveboard-player-profile-height, 45px) !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile .elo,
