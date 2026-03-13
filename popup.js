@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideMaterial: false,
     customPlayerOrder: false,
     playerOrderList: DEFAULT_ORDER,
-    playerOrderGap12: '6',
+    playerOrderGap12: '0',
     playerOrderGap23: '6',
     playerOrderGap34: '6',
     playerInfoLayout: 'default',
@@ -1085,7 +1085,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setVar('--bc-display-eval', settings.hideEval ? 'none' : 'block');
     setVar('--bc-display-board-coords', settings.hideBoardCoords ? 'none' : 'flex');
     setVar('--bc-display-board-resize-handle', settings.hideBoardResizeHandle ? 'none' : 'initial');
-    setVar('--bc-player-order-gap-12', `${Math.max(0, parseNumber(settings.playerOrderGap12, parseNumber(defaults.playerOrderGap12, 6)))}px`);
+    setVar('--bc-player-order-gap-12', `${Math.max(0, parseNumber(settings.playerOrderGap12, parseNumber(defaults.playerOrderGap12, 0)))}px`);
     setVar('--bc-player-order-gap-23', `${Math.max(0, parseNumber(settings.playerOrderGap23, parseNumber(defaults.playerOrderGap23, 6)))}px`);
     setVar('--bc-player-order-gap-34', `${Math.max(0, parseNumber(settings.playerOrderGap34, parseNumber(defaults.playerOrderGap34, 6)))}px`);
 
