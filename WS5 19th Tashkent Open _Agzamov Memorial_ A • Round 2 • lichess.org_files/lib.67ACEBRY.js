@@ -1,1 +1,0 @@
-var d={ultraBullet:"\uE059",bullet:"\uE032",blitz:"\uE008",rapid:"\uE002",classical:"\uE00A",correspondence:"\uE019",chess960:"\uE006",kingOfTheHill:"\uE007",antichess:"\uE01E",atomic:"\uE01C",threeCheck:"\uE00D",horde:"\uE03D",racingKings:"\uE065",crazyhouse:"\uE066"},m=d;export{m as a};

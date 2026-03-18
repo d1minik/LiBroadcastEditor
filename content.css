@@ -1149,6 +1149,19 @@ html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboa
     background: var(--bc-clock-white-bg, inherit) !important;
 }
 
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic:hover .bc-multiboard-profile.relay-board-player {
+    background: var(--bc-profile-bg, linear-gradient(to bottom, var(--c-metal-top), var(--c-metal-bottom))) !important;
+    color: var(--c-font) !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic:hover .bc-multiboard-profile .name {
+    color: var(--c-font) !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic:hover .bc-multiboard-profile .utitle {
+    color: var(--bc-title-color, inherit) !important;
+}
+
 @media(max-width: 799.29px) and (orientation: portrait) {
     .analyse.is-relay .analyse__controls {
         margin-top: var(--bc-player-profile-height, 45px) !important;
