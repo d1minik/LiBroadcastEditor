@@ -472,9 +472,9 @@ function getLiveboardScale() {
   return Number.isFinite(scaleValue) && scaleValue > 0 ? scaleValue : 0.82;
 }
 
-function syncLiveboardProfileWrapLayout(wrap) {
+function syncMimicProfileWrapLayout(wrap, profileSelector, autoHideClassName, forceHideFlag) {
   if (!wrap) return;
-  const profile = wrap.querySelector('.bc-liveboard-profile.relay-board-player');
+  const profile = wrap.querySelector(profileSelector);
   if (!profile) return;
 
   const scale = getLiveboardScale();
@@ -485,17 +485,26 @@ function syncLiveboardProfileWrapLayout(wrap) {
     profile.style.removeProperty('width');
   }
 
-  profile.classList.remove('bc-liveboard-auto-hide-flag');
-  if (latestSettings.hideLiveboardFlag) {
-    profile.classList.add('bc-liveboard-auto-hide-flag');
+  profile.classList.remove(autoHideClassName);
+  if (forceHideFlag) {
+    profile.classList.add(autoHideClassName);
     return;
   }
 
   const infoSplit = profile.querySelector('.info-split');
   if (!infoSplit || !profile.querySelector('.mini-game__flag')) return;
   if (infoSplit.scrollWidth - infoSplit.clientWidth > 1) {
-    profile.classList.add('bc-liveboard-auto-hide-flag');
+    profile.classList.add(autoHideClassName);
   }
+}
+
+function syncLiveboardProfileWrapLayout(wrap) {
+  syncMimicProfileWrapLayout(
+    wrap,
+    '.bc-liveboard-profile.relay-board-player',
+    'bc-liveboard-auto-hide-flag',
+    Boolean(latestSettings.hideLiveboardFlag)
+  );
 }
 
 function syncLiveboardProfileLayouts(liveboardGame) {
@@ -556,11 +565,213 @@ function syncLiveboardProfiles() {
   liveboardGames.forEach(syncLiveboardGame);
 }
 
+function isStandaloneMultiboardPage() {
+  return Boolean(
+    document.querySelector('main.analyse.is-relay .box.relay-tour > .study__multiboard') &&
+    !document.querySelector('main.analyse.is-relay .analyse__board.main-board')
+  );
+}
+
+function syncStandaloneMultiboardPageState() {
+  document.documentElement.classList.toggle('bc-multiboard-page', isStandaloneMultiboardPage());
+}
+
+function enforceStandaloneMultiboardResultsOption() {
+  if (!document.documentElement.classList.contains('bc-multiboard-page')) return;
+
+  const input = document.querySelector(
+    'main.analyse.is-relay .box.relay-tour > .study__multiboard #cmn-tg-multiboard-results'
+  );
+  if (!input) return;
+
+  const wasChecked = input.checked;
+  input.checked = true;
+  if (!wasChecked) {
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  input.disabled = true;
+  input.setAttribute('aria-disabled', 'true');
+
+  const optionLabel = input.closest('.cmn-toggle-wrap');
+  if (optionLabel) optionLabel.classList.add('bc-multiboard-results-locked');
+}
+
+function formatMultiboardClockText(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '';
+  const shortClockMatch = trimmed.match(/^(\d{1,2}):(\d{2})$/);
+  if (shortClockMatch) {
+    const [, minutes, seconds] = shortClockMatch;
+    return `0:${minutes.padStart(2, '0')}:${seconds}`;
+  }
+  return trimmed;
+}
+
+function createMultiboardProfile(playerRow, profileClass) {
+  if (!playerRow) return null;
+
+  const user = playerRow.querySelector('.mini-game__user');
+  if (!user) return null;
+
+  const profile = document.createElement('div');
+  profile.className = `relay-board-player ${profileClass} bc-multiboard-profile`;
+  if (playerRow.classList.contains('ticking')) profile.classList.add('ticking');
+
+  const left = document.createElement('div');
+  left.className = 'left';
+
+  const infoSplit = document.createElement('div');
+  infoSplit.className = 'info-split';
+
+  const primary = document.createElement('div');
+  const sourceName = user.querySelector('.name');
+  const sourceTitle = sourceName?.querySelector('.utitle');
+  const sourceFlag = user.querySelector('.mini-game__flag');
+
+  if (sourceTitle) {
+    primary.appendChild(sourceTitle.cloneNode(true));
+  }
+
+  if (sourceName) {
+    const nameClone = sourceName.cloneNode(true);
+    nameClone.querySelectorAll('.utitle').forEach((node) => node.remove());
+    primary.appendChild(nameClone);
+  }
+
+  if (primary.childNodes.length) {
+    infoSplit.appendChild(primary);
+  }
+
+  if (sourceFlag) {
+    const secondary = document.createElement('div');
+    secondary.className = 'info-secondary';
+    secondary.appendChild(sourceFlag.cloneNode(true));
+    infoSplit.appendChild(secondary);
+  }
+
+  left.appendChild(infoSplit);
+  profile.appendChild(left);
+
+  const statusSource = playerRow.querySelector('.mini-game__clock');
+  if (statusSource) {
+    const clock = document.createElement('div');
+    const isTopProfile = profileClass.includes('top');
+    clock.className = `analyse__clock ${isTopProfile ? 'top' : 'bottom'}`;
+    if (statusSource.classList.contains('clock--run')) clock.classList.add('active');
+    clock.textContent = formatMultiboardClockText(statusSource.textContent);
+    profile.appendChild(clock);
+  }
+
+  return profile;
+}
+
+function createMultiboardProfileWrap(playerRow, wrapClass, profileClass) {
+  const profile = createMultiboardProfile(playerRow, profileClass);
+  if (!profile) return null;
+
+  const wrap = document.createElement('div');
+  wrap.className = `bc-multiboard-profile-wrap ${wrapClass}`;
+  wrap.dataset.bcSignature = playerRow.outerHTML;
+  wrap.appendChild(profile);
+  return wrap;
+}
+
+function syncMultiboardProfileWrapLayout(wrap) {
+  syncMimicProfileWrapLayout(
+    wrap,
+    '.bc-multiboard-profile.relay-board-player',
+    'bc-multiboard-auto-hide-flag',
+    Boolean(latestSettings.hideLiveboardFlag)
+  );
+}
+
+function syncMultiboardProfileLayouts(multiboardGame) {
+  if (!multiboardGame) return;
+  multiboardGame.querySelectorAll('.bc-multiboard-profile-wrap').forEach(syncMultiboardProfileWrapLayout);
+}
+
+function syncMultiboardProfileWrap(multiboardGame, playerRow, wrapClass, profileClass, beforeNode) {
+  const existingWrap = Array.from(multiboardGame.children).find(
+    (child) => child.classList && child.classList.contains(wrapClass)
+  );
+
+  if (!playerRow) {
+    if (existingWrap) existingWrap.remove();
+    return;
+  }
+
+  const signature = playerRow.outerHTML;
+  if (existingWrap && existingWrap.dataset.bcSignature === signature) return;
+
+  const nextWrap = createMultiboardProfileWrap(playerRow, wrapClass, profileClass);
+  if (!nextWrap) {
+    if (existingWrap) existingWrap.remove();
+    return;
+  }
+
+  if (existingWrap) {
+    existingWrap.replaceWith(nextWrap);
+    return;
+  }
+
+  if (beforeNode) {
+    multiboardGame.insertBefore(nextWrap, beforeNode);
+  } else {
+    multiboardGame.appendChild(nextWrap);
+  }
+}
+
+function syncStandaloneMultiboardGame(multiboardGame) {
+  const playerRows = Array.from(multiboardGame.children).filter(
+    (child) => child.classList && child.classList.contains('mini-game__player')
+  );
+  const topRow = playerRows[0];
+  if (!topRow) return;
+
+  const bottomRow = playerRows[1] || null;
+
+  multiboardGame.classList.add('bc-multiboard-mimic');
+  topRow.classList.add('bc-multiboard-stage');
+  if (bottomRow) bottomRow.classList.add('bc-multiboard-source-bottom');
+
+  syncMultiboardProfileWrap(
+    multiboardGame,
+    topRow,
+    'bc-multiboard-profile-top',
+    'relay-board-player-top',
+    topRow
+  );
+  syncMultiboardProfileWrap(
+    multiboardGame,
+    bottomRow,
+    'bc-multiboard-profile-bot',
+    'relay-board-player-bot',
+    bottomRow
+  );
+  syncMultiboardProfileLayouts(multiboardGame);
+}
+
+function syncStandaloneMultiboardProfiles() {
+  syncStandaloneMultiboardPageState();
+  if (!document.documentElement.classList.contains('bc-multiboard-page')) return;
+  enforceStandaloneMultiboardResultsOption();
+
+  const multiboardGames = document.querySelectorAll(
+    'main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game'
+  );
+  if (!multiboardGames.length) return;
+  multiboardGames.forEach(syncStandaloneMultiboardGame);
+}
+
 function enforceLiveboardMode() {
+  syncStandaloneMultiboardPageState();
   const chatBoxes = document.querySelectorAll('.mchat, .mchat-mod');
-  if (!chatBoxes.length) return;
-  chatBoxes.forEach((chatBox) => activateLiveboardTab(chatBox));
-  syncLiveboardProfiles();
+  if (chatBoxes.length) {
+    chatBoxes.forEach((chatBox) => activateLiveboardTab(chatBox));
+    syncLiveboardProfiles();
+  }
+  syncStandaloneMultiboardProfiles();
 }
 
 function scheduleLiveboardSync() {

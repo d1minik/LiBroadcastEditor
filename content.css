@@ -194,6 +194,22 @@ main.analyse.is-relay .mchat-mod + .vertical-resize {
     opacity: 1 !important;
 }
 
+html.bc-multiboard-page.bc-custom-board main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__board cg-board::before,
+html.bc-multiboard-page.bc-custom-liveboard-board main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__board cg-board::before {
+    background-color: var(--bc-liveboard-board-light, var(--bc-board-light, #f0d9b5)) !important;
+    background-image: conic-gradient(
+        var(--bc-liveboard-board-dark, var(--bc-board-dark, #b58863)) 0 25%,
+        var(--bc-liveboard-board-light, var(--bc-board-light, #f0d9b5)) 0 50%,
+        var(--bc-liveboard-board-dark, var(--bc-board-dark, #b58863)) 0 75%,
+        var(--bc-liveboard-board-light, var(--bc-board-light, #f0d9b5)) 0
+    ) !important;
+    background-size: 25% 25% !important;
+    background-position: 0 0 !important;
+    background-repeat: repeat !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
 /* Arrow Colors (main board only) */
 .analyse__board.main-board svg.cg-shapes defs marker[cgKey="g"] path {
     fill: var(--bc-arrow-primary-color, #15781b) !important;
@@ -617,6 +633,15 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic >
     display: none !important;
 }
 
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player good,
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player bad,
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player .mini-game__result,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player good,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player bad,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player .mini-game__result {
+    display: none !important;
+}
+
 main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player.bc-liveboard-stage > .cg-gauge,
 main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic > .mini-game__player.bc-liveboard-stage > .cg-gauge {
     display: flex !important;
@@ -859,6 +884,267 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.relay-boa
 
 main.analyse.is-relay .mchat .chat-liveboard .bc-liveboard-profile.relay-board-player-bot .analyse__clock,
 main.analyse.is-relay .mchat-mod .chat-liveboard .bc-liveboard-profile.relay-board-player-bot .analyse__clock {
+    color: var(--bc-clock-white-color, inherit) !important;
+    background: var(--bc-clock-white-bg, inherit) !important;
+}
+
+/* Standalone Multiboard Page (WS2) */
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    overflow: visible !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic > .mini-game__player {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic > .mini-game__player.bc-multiboard-source-bottom {
+    display: none !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic > .mini-game__player.bc-multiboard-stage > .mini-game__user {
+    display: none !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic > .mini-game__player .mini-game__clock {
+    display: none !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic > .mini-game__player good,
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic > .mini-game__player bad,
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic > .mini-game__player .mini-game__result {
+    display: none !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.active,
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game:hover,
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.active:hover {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+    background: transparent !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic > .mini-game__player.bc-multiboard-stage > .cg-gauge {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    align-items: stretch !important;
+    column-gap: var(--bc-liveboard-eval-gap, 4px) !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .study__multiboard__options .bc-multiboard-results-locked {
+    display: none !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge {
+    width: unset !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    flex: 0 0 var(--bc-liveboard-eval-width, 4%) !important;
+    margin: 0 !important;
+    border-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
+    overflow: hidden !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: calc(var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) + 1px) !important;
+    border-top-left-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
+    border-top-right-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
+    background: #444 !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+}
+
+html.light.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge::before {
+    background: #606060 !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge .mini-game__gauge__black {
+    position: relative !important;
+    z-index: 1 !important;
+    border-top-left-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
+    border-top-right-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge tick {
+    border-bottom-color: var(--bc-eval-zero-color, var(--m-accent--fade-50)) !important;
+    border-bottom-width: max(1px, calc(var(--bc-eval-zero-thickness, 7px) * 0.45)) !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__board {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__board .cg-wrap,
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__board cg-container,
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__board cg-board {
+    border-radius: var(--bc-liveboard-board-radius, var(--bc-board-radius, 6px)) !important;
+    overflow: hidden !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile-wrap {
+    flex: 0 0 auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: calc(var(--bc-liveboard-scale, 0.82) * var(--bc-liveboard-player-profile-height, 45px)) !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile.relay-board-player {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    height: var(--bc-liveboard-player-profile-height, 45px) !important;
+    width: calc(100% / var(--bc-liveboard-scale, 0.82)) !important;
+    max-width: none !important;
+    margin: 0 !important;
+    transform: scale(var(--bc-liveboard-scale, 0.82)) !important;
+    transform-origin: top left !important;
+    box-sizing: border-box !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .left {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    gap: 0.7em !important;
+    padding-inline-start: var(--bc-liveboard-player-left-pad, 0px) !important;
+    overflow: hidden !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .name {
+    font-family: var(--bc-liveboard-name-font, var(--bc-name-font, inherit)) !important;
+    font-weight: var(--bc-liveboard-name-font-weight, var(--bc-name-font-weight, inherit)) !important;
+    font-size: calc(
+        var(--bc-liveboard-text-scale, 1) *
+        var(--bc-liveboard-name-scale, 1) *
+        var(--bc-name-size, 1em)
+    ) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1.15 !important;
+    padding-bottom: 0.06em !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .utitle {
+    color: var(--bc-title-color, inherit) !important;
+    font-family: var(--bc-liveboard-title-font, inherit) !important;
+    font-size: calc(
+        var(--bc-liveboard-text-scale, 1) *
+        var(--bc-liveboard-title-scale, 1) *
+        var(--bc-title-size, 1em)
+    ) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1.12 !important;
+    flex: 0 0 auto !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .info-split {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .info-split > div {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .info-split > div:first-child {
+    flex: 0 1 auto !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .info-secondary {
+    flex: 0 0 auto !important;
+    gap: 0 !important;
+    margin-inline-start: 0.35em !important;
+    font-size: 1em !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile.bc-multiboard-auto-hide-flag .info-secondary {
+    display: none !important;
+    margin-inline-start: 0 !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .mini-game__flag {
+    display: var(--bc-display-liveboard-flag, inline-block) !important;
+    width: calc(var(--bc-liveboard-flag-scale, 1) * var(--bc-flag-width, 1em)) !important;
+    height: calc(var(--bc-liveboard-flag-scale, 1) * var(--bc-flag-height, 1em)) !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .relay-board-player__photo {
+    display: var(--bc-display-liveboard-photo, block) !important;
+    border-radius: var(--bc-liveboard-photo-radius, var(--bc-photo-radius, inherit)) !important;
+    height: var(--bc-liveboard-player-profile-height, 45px) !important;
+    width: var(--bc-liveboard-player-profile-height, 45px) !important;
+    flex: 0 0 var(--bc-liveboard-player-profile-height, 45px) !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile .analyse__clock {
+    display: var(--bc-display-liveboard-clocks, flex) !important;
+    font-family: var(--bc-liveboard-clock-font, var(--bc-clock-font, inherit)) !important;
+    font-weight: var(--bc-liveboard-clock-font-weight, var(--bc-clock-font-weight, inherit)) !important;
+    font-size: calc(
+        var(--bc-liveboard-text-scale, 1) *
+        var(--bc-liveboard-clock-scale, 1) *
+        1em
+    ) !important;
+    font-variant-numeric: tabular-nums lining-nums !important;
+    border-radius: var(--bc-liveboard-clock-radius, var(--bc-clock-radius, 3px)) !important;
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    margin-inline-start: auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.12 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile.relay-board-player-top .analyse__clock {
+    color: var(--bc-clock-black-color, inherit) !important;
+    background: var(--bc-clock-black-bg, inherit) !important;
+}
+
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .bc-multiboard-profile.relay-board-player-bot .analyse__clock {
     color: var(--bc-clock-white-color, inherit) !important;
     background: var(--bc-clock-white-bg, inherit) !important;
 }
