@@ -97,6 +97,7 @@ main.analyse.is-relay .mchat-mod + .vertical-resize {
     line-height: 1 !important;
     font-family: var(--bc-clock-font, inherit) !important;
     font-weight: var(--bc-clock-font-weight, inherit) !important;
+    text-shadow: none !important;
     border-radius: var(--bc-clock-radius, 3px) !important;
     border: var(--bc-clock-border-width, 0px) solid var(--bc-clock-border-color, transparent) !important;
     box-shadow: inset 0 0 0 var(--bc-clock-border-width, 0px) var(--bc-clock-border-color, transparent) !important;
