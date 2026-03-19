@@ -987,7 +987,7 @@ function applySettings(settings) {
   }
   root.style.setProperty('--bc-display-photo', settings.hidePhoto ? 'none' : '');
   root.style.setProperty('--bc-display-flag', settings.hideFlagOption ? 'none' : '');
-  root.style.setProperty('--bc-display-rating', settings.hideRatingOption ? 'none' : '');
+  root.style.setProperty('--bc-display-rating', settings.hideRatingOption ? 'none' : 'inline-flex');
   root.style.setProperty('--bc-display-material', settings.hideMaterial ? 'none' : 'flex');
   
   if (settings.photoRadius !== undefined) {

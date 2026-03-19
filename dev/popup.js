@@ -1125,7 +1125,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setVar('--bc-display-photo', settings.hidePhoto ? 'none' : 'block');
     if (settings.hideFlagOption) setVar('--bc-display-flag', 'none');
-    setVar('--bc-display-rating', settings.hideRatingOption ? 'none' : 'inline');
+    setVar('--bc-display-rating', settings.hideRatingOption ? 'none' : 'inline-flex');
     setVar('--bc-display-material', settings.hideMaterial ? 'none' : 'flex');
     if (!settings.hideProfileBg && settings.useCustomProfileBgColor) {
       setVar('--bc-profile-bg', settings.profileBgColor || defaults.profileBgColor);
@@ -1345,10 +1345,13 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
 .analyse__board.main-board .relay-board-player .info-split .elo {
   order: ${orderMap.rating};
   margin-inline-start: ${gapMap.rating || '0'} !important;
-  display: inline-flex !important;
+  display: var(--bc-display-rating, inline-flex) !important;
   align-items: center !important;
   line-height: 1.12 !important;
   font-size: var(--bc-rating-size, 0.9em) !important;
+}
+.analyse__board.main-board .relay-board-player .info-split .bc-order-rating {
+  display: var(--bc-display-rating, inline-flex) !important;
 }`);
     } else if (settings.playerInfoLayout === 'inline') {
       rules.push(`
