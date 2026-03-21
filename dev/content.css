@@ -39,17 +39,59 @@ main.analyse.is-relay .mchat .mchat__content.liveboard,
 main.analyse.is-relay .mchat-mod .mchat__content.liveboard,
 main.analyse.is-relay .mchat .chat-liveboard,
 main.analyse.is-relay .mchat-mod .chat-liveboard {
-    background: var(--bc-liveboard-panel-bg) !important;
+    background: transparent !important;
+    background-image: none !important;
 }
 
 main.analyse.is-relay .mchat,
 main.analyse.is-relay .mchat-mod {
-    border: var(--bc-liveboard-panel-border) !important;
-    box-shadow: var(--bc-liveboard-panel-shadow) !important;
-    border-radius: var(--bc-liveboard-panel-radius) !important;
+    border: var(--bc-liveboard-panel-border, none) !important;
+    box-shadow: var(--bc-liveboard-panel-shadow, none) !important;
+    border-radius: var(--bc-liveboard-panel-radius, 6px) !important;
     height: auto !important;
     min-height: 0 !important;
     overflow: visible !important;
+}
+
+/* Flat Surface Overrides */
+main.analyse.is-relay .box::before,
+main.analyse.is-relay .relay-board-player::before {
+    display: none !important;
+    backdrop-filter: none !important;
+}
+
+main.analyse.is-relay .relay-tour,
+main.analyse.is-relay .analyse__tools,
+main.analyse.is-relay .study__multiboard,
+main.analyse.is-relay .mchat,
+main.analyse.is-relay .mchat-mod,
+main.analyse.is-relay .relay-tour__info,
+main.analyse.is-relay .relay-tour__note,
+main.analyse.is-relay .relay-tour__side__empty,
+main.analyse.is-relay .relay-tour__side__preload,
+main.analyse.is-relay .study__message,
+main.analyse.is-relay .study__server-eval,
+main.analyse.is-relay .study__share,
+main.analyse.is-relay .study__glyphs,
+main.analyse.is-relay .study__comment,
+main.analyse.is-relay .study__comments .study__wiki,
+main.analyse.is-relay .study__metadata,
+main.analyse.is-relay .study-desc,
+main.analyse.is-relay .study__relay__rounds,
+main.analyse.is-relay .study-search__results,
+main.analyse.is-relay .study__members,
+main.analyse.is-relay .study__chapters {
+    box-shadow: none !important;
+}
+
+main.analyse.is-relay .study__player,
+main.analyse.is-relay .study__metadata h2,
+main.analyse.is-relay .analyse__tools .comp-off__hint,
+main.analyse.is-relay .ceval,
+main.analyse.is-relay .slist thead {
+    background: var(--c-bg-box, var(--c-bg, #403a34)) !important;
+    background-image: none !important;
+    box-shadow: none !important;
 }
 
 main.analyse.is-relay .mchat .mchat__tabs,
@@ -351,7 +393,8 @@ html.light .analyse .eval-gauge::before {
     display: flex !important;
     align-items: stretch !important;
     border-radius: 0 !important;
-    background: var(--bc-profile-bg, linear-gradient(to bottom, var(--c-metal-top), var(--c-metal-bottom))) !important;
+    background: var(--bc-profile-bg, var(--c-bg-box, #403a34)) !important;
+    box-shadow: none !important;
     height: var(--bc-player-profile-height, 45px) !important;
 }
 
@@ -409,6 +452,10 @@ html.light .analyse .eval-gauge::before {
     display: var(--bc-display-rating, inline-flex) !important;
     font-size: var(--bc-rating-size, inherit) !important;
     text-shadow: none !important;
+}
+
+.relay-board-player .result {
+    margin-inline-end: 8px !important;
 }
 
 .relay-board-player .info-split {
@@ -679,7 +726,9 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     border-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
     overflow: hidden !important;
     position: relative !important;
+    z-index: 1 !important;
     box-sizing: border-box !important;
+    box-shadow: none !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before,
@@ -708,6 +757,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     z-index: 1 !important;
     border-top-left-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
     border-top-right-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
+    box-shadow: none !important;
 }
 
 main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge tick,
@@ -1165,7 +1215,8 @@ html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboa
 }
 
 html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic:hover .bc-multiboard-profile.relay-board-player {
-    background: var(--bc-profile-bg, linear-gradient(to bottom, var(--c-metal-top), var(--c-metal-bottom))) !important;
+    background: var(--bc-profile-bg, var(--c-bg-box, #403a34)) !important;
+    box-shadow: none !important;
     color: var(--c-font) !important;
 }
 
