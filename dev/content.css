@@ -435,6 +435,8 @@ html.light .analyse .eval-gauge::before {
 }
 
 .relay-board-player .name {
+    color: var(--bc-name-color, inherit) !important;
+    opacity: var(--bc-name-opacity, 1) !important;
     font-family: var(--bc-name-font, inherit) !important;
     font-weight: var(--bc-name-font-weight, inherit) !important;
     line-height: 1.15 !important;
@@ -1221,7 +1223,7 @@ html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboa
 }
 
 html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic:hover .bc-multiboard-profile .name {
-    color: var(--c-font) !important;
+    color: var(--bc-name-color, var(--c-font)) !important;
 }
 
 html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic:hover .bc-multiboard-profile .utitle {

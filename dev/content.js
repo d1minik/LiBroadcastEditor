@@ -57,6 +57,8 @@ const defaultSettings = {
   scaleName: true,
   scaleRating: true,
   scaleFlag: true,
+  nameColor: '',
+  nameOpacity: '100',
   titleColor: '#ffaa00',
   titleOpacity: '100',
   ratingColor: '#aaaaaa',
@@ -888,6 +890,7 @@ function applySettings(settings) {
   const playerOrderGap23 = Math.max(0, parseNumber(settings.playerOrderGap23, parseNumber(defaultSettings.playerOrderGap23, 6)));
   const playerOrderGap34 = Math.max(0, parseNumber(settings.playerOrderGap34, parseNumber(defaultSettings.playerOrderGap34, 6)));
   const lastMoveOpacity = parseOpacity(settings.lastMoveOpacity, parseNumber(defaultSettings.lastMoveOpacity, 41));
+  const nameOpacity = parseOpacity(settings.nameOpacity, parseNumber(defaultSettings.nameOpacity, 100));
   const titleOpacity = parseOpacity(settings.titleOpacity, parseNumber(defaultSettings.titleOpacity, 100));
   const ratingOpacity = parseOpacity(settings.ratingOpacity, parseNumber(defaultSettings.ratingOpacity, 100));
   const clockBorderOpacity = parseOpacity(settings.clockBorderOpacity, parseNumber(defaultSettings.clockBorderOpacity, 100));
@@ -1062,6 +1065,13 @@ function applySettings(settings) {
   } else {
       root.style.removeProperty('--bc-rating-size');
   }
+
+  if (parseHexColor(settings.nameColor)) {
+    root.style.setProperty('--bc-name-color', settings.nameColor);
+  } else {
+    root.style.removeProperty('--bc-name-color');
+  }
+  root.style.setProperty('--bc-name-opacity', String(nameOpacity));
 
   root.style.setProperty(
     '--bc-title-color',

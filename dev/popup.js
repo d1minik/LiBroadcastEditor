@@ -57,6 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
     scaleName: document.getElementById('scaleName'),
     scaleRating: document.getElementById('scaleRating'),
     scaleFlag: document.getElementById('scaleFlag'),
+    nameColor: document.getElementById('nameColor'),
+    nameOpacity: document.getElementById('nameOpacity'),
     titleColor: document.getElementById('titleColor'),
     titleOpacity: document.getElementById('titleOpacity'),
     ratingColor: document.getElementById('ratingColor'),
@@ -262,6 +264,8 @@ document.addEventListener("DOMContentLoaded", () => {
     scaleName: true,
     scaleRating: true,
     scaleFlag: true,
+    nameColor: '',
+    nameOpacity: '100',
     titleColor: '#ffaa00',
     titleOpacity: '100',
     ratingColor: '#aaaaaa',
@@ -321,6 +325,9 @@ document.addEventListener("DOMContentLoaded", () => {
       .map(([key]) => key)
   );
   const FONT_INPUT_KEYS = new Set(['nameFont', 'clockFont', 'liveboardNameFont', 'liveboardTitleFont', 'liveboardClockFont']);
+  const OPTIONAL_COLOR_INPUT_FALLBACKS = {
+    nameColor: '#ffffff'
+  };
   const GENERIC_FONT_FAMILIES = new Set([
     'serif',
     'sans-serif',
@@ -870,6 +877,8 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const key in elements) {
       if (elements[key].type === 'checkbox') {
         settings[key] = elements[key].checked;
+      } else if (Object.prototype.hasOwnProperty.call(OPTIONAL_COLOR_INPUT_FALLBACKS, key)) {
+        settings[key] = elements[key].dataset.customized === '1' ? elements[key].value : '';
       } else if (Object.prototype.hasOwnProperty.call(LIVEBOARD_RADIUS_INHERIT_MAP, key)) {
         settings[key] = elements[key].dataset.inherit === '0' ? elements[key].value : '';
       } else if (FONT_INPUT_KEYS.has(key)) {
@@ -919,6 +928,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (settings[key] === undefined) continue;
       if (elements[key].type === 'checkbox') {
         elements[key].checked = Boolean(settings[key]);
+      } else if (Object.prototype.hasOwnProperty.call(OPTIONAL_COLOR_INPUT_FALLBACKS, key)) {
+        const value = String(settings[key] ?? '').trim();
+        elements[key].value = value || OPTIONAL_COLOR_INPUT_FALLBACKS[key];
+        elements[key].dataset.customized = value ? '1' : '0';
       } else if (Object.prototype.hasOwnProperty.call(LIVEBOARD_RADIUS_INHERIT_MAP, key)) {
         if (String(settings[key] ?? '').trim() === '') {
           elements[key].dataset.inherit = '1';
@@ -1059,6 +1072,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const emSize = baseSize / 14;
     const resolvedNameFont = resolveFontCssValue(settings.nameFont);
     const resolvedClockFont = resolveFontCssValue(settings.clockFont);
+    const resolvedNameColor = parseHexColor(settings.nameColor);
+    const nameOpacity = parseOpacityPercent(settings.nameOpacity, parseNumber(defaults.nameOpacity, 100)) / 100;
     const liveboardScale = clamp(parseNumber(defaults.liveboardScale, 82), 55, 140) / 100;
     const liveboardFlagScale = clamp(parseNumber(defaults.liveboardFlagScale, 100), 60, 160) / 100;
     const liveboardTextScale = clamp(parseNumber(settings.liveboardTextScale, parseNumber(defaults.liveboardTextScale, 100)), 60, 180) / 100;
@@ -1150,6 +1165,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (settings.scaleTitle) setVar('--bc-title-size', `${emSize}em`);
     if (settings.scaleName) setVar('--bc-name-size', `${baseSize}px`);
     if (settings.scaleRating) setVar('--bc-rating-size', `${emSize * 0.9}em`);
+    if (resolvedNameColor) setVar('--bc-name-color', settings.nameColor);
+    setVar('--bc-name-opacity', String(nameOpacity));
     setVar(
       '--bc-title-color',
       colorWithOpacity(settings.titleColor, settings.titleOpacity, defaults.titleColor, defaults.titleOpacity)
@@ -1593,6 +1610,16 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
         elements[key].focus();
       }
     });
+  }
+
+  for (const key in OPTIONAL_COLOR_INPUT_FALLBACKS) {
+    const input = elements[key];
+    if (!input) continue;
+    const markCustomized = () => {
+      input.dataset.customized = '1';
+    };
+    input.addEventListener('input', markCustomized);
+    input.addEventListener('change', markCustomized);
   }
 
   for (const key in elements) {
