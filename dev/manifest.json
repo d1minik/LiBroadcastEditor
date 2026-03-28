@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LiBroadcastEditor",
-  "version": "1.2",
+  "version": "1.4",
   "description": "Customize Lichess broadcast pages dynamically with LiBroadcastEditor.",
   "permissions": ["storage"],
   "host_permissions": ["*://lichess.org/*"],
