@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <!-- CSS styling of the popup itself -->
+  <style>
+    :root {
+      --bg-main: #1e1b18;
+      --bg-panel: #2b2825;
+      --accent: #cf8b3f;
+      /* Lichess Gold */
+      --accent-hover: #e29f53;
+      --text-main: #dbd8d5;
+      --text-muted: #959390;
+      --border: #403d39;
+      --subgroup-bg: rgba(70, 70, 70, 0.18);
+      --subgroup-border: rgba(138, 138, 138, 0.28);
+      --detail-bg: rgba(18, 18, 18, 0.3);
+      --detail-border: rgba(255, 255, 255, 0.08);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      padding: 16px;
+      width: 400px;
+      background: var(--bg-main);
+      color: var(--text-main);
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0 0 16px 0;
+      text-align: center;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .group {
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: var(--bg-panel);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .group-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .setting-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .setting-label {
+      flex: 1;
+      margin-right: 10px;
+      font-weight: 500;
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #555;
+      transition: .3s;
+      border-radius: 18px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    input:checked+.slider {
+      background-color: var(--accent);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(16px);
+    }
+
+    /* Inputs */
+    input[type="color"] {
+      width: 44px;
+      height: 26px;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    input[type="color"]::-webkit-color-swatch {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    select,
+    input[type="text"] {
+      width: 120px;
+      padding: 5px 8px;
+      box-sizing: border-box;
+      background: #1a1816;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    select:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .control-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      width: 150px;
+    }
+
+    .control-stack select,
+    .control-stack input[type="text"] {
+      width: 150px;
+    }
+
+    .control-help,
+    .font-status {
+      width: 150px;
+      font-size: 10px;
+      line-height: 1.35;
+      text-align: right;
+    }
+
+    .control-help {
+      color: var(--text-muted);
+    }
+
+    .font-status {
+      color: #f3ac63;
+      min-height: 0;
+    }
+
+    .font-status:empty {
+      display: none;
+    }
+
+    .font-input.font-missing {
+      border-color: #c76b43;
+      color: #ffd9bf;
+    }
+
+    .setting-row.is-disabled {
+      opacity: 0.48;
+    }
+
+    .setting-row.is-disabled .setting-label {
+      color: var(--text-muted);
+    }
+
+    .setting-row.is-locked {
+      cursor: not-allowed;
+    }
+
+    select:disabled,
+    input[type="text"]:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* Range Slider */
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      width: 146px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      margin: 0;
+      height: 4px;
+      background: #1a1816;
+      border-radius: 2px;
+      -webkit-appearance: none;
+      outline: none;
+      border: 1px solid var(--border);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      transition: background .2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--accent-hover);
+    }
+
+    .range-val {
+      width: 36px;
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 6px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    .tab-nav {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .preset-actions {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 0;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      background: #1a1816;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      background: #2f2620;
+    }
+
+    .tab-btn {
+      background: #1a1816;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      color: var(--text-main);
+      border-color: var(--accent);
+      background: #2f2620;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .subgroup {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+
+    .subgroup:last-child {
+      margin-bottom: 0;
+    }
+
+    .subgroup-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subgroup.warm,
+    .subgroup.cool,
+    .subgroup.green,
+    .subgroup.gold,
+    .subgroup.slate {
+      background: var(--subgroup-bg);
+      border-color: var(--subgroup-border);
+    }
+
+    .subgroup .subgroup-title {
+      color: var(--text-main);
+    }
+
+    .detail-box {
+      border: 1px solid var(--detail-border);
+      border-radius: 6px;
+      padding: 8px 9px;
+      background: var(--detail-bg);
+      margin-bottom: 8px;
+    }
+
+    .detail-box:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-box.is-disabled {
+      opacity: 0.48;
+    }
+
+    .detail-box.is-disabled .detail-box-title {
+      color: var(--text-muted);
+    }
+
+    .detail-box-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.65px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .detail-box .setting-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-status {
+      width: 150px;
+      font-size: 10px;
+      line-height: 1.35;
+      text-align: right;
+      color: var(--text-muted);
+    }
+
+    .control-status:empty {
+      display: none;
+    }
+
+    .setting-context-note {
+      display: none;
+      margin: -4px 0 10px;
+      padding: 6px 8px;
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.24);
+      border: 1px solid rgba(207, 139, 63, 0.35);
+      color: #e3c39a;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .setting-context-note.is-visible {
+      display: block;
+    }
+
+    .subgroup-note {
+      margin: -2px 0 10px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .order-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      width: 130px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .order-item {
+      background: #1a1816;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 6px 8px;
+      font-size: 12px;
+      color: var(--text-main);
+      cursor: grab;
+      user-select: none;
+    }
+
+    .order-item::before {
+      content: '≡ ';
+      color: var(--text-muted);
+    }
+
+    .order-item.dragging {
+      opacity: 0.45;
+      cursor: grabbing;
+    }
+
+    .popup-footer {
+      margin: 8px 0 2px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .popup-footer a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .popup-footer a:hover {
+      color: var(--text-main);
+      border-color: rgba(207, 139, 63, 0.45);
+    }
+  </style>
+</head>
+
+<body>
+  <h2>LiBroadcastEditor</h2>
+
+  <!-- Tab navigation -->
+  <div class="tab-nav" role="tablist" aria-label="Settings Tabs">
+    <button type="button" class="tab-btn active" data-tab-target="globalLayout" aria-selected="true">Global &amp;
+      Layout</button>
+    <button type="button" class="tab-btn" data-tab-target="boardEval" aria-selected="false">Board &amp; Eval
+      Bar</button>
+    <button type="button" class="tab-btn" data-tab-target="playerProfile" aria-selected="false">Player Profile</button>
+    <button type="button" class="tab-btn" data-tab-target="clockSettings" aria-selected="false">Clock Settings</button>
+    <button type="button" class="tab-btn" data-tab-target="liveboardSettings" aria-selected="false">Liveboard</button>
+    <button type="button" class="tab-btn" data-tab-target="actions" aria-selected="false">Actions</button>
+  </div>
+
+  <!-- Global page-level toggles and layout controls for the broadcast view -->
+  <div class="group tab-panel active" data-tab-panel="globalLayout">
+    <div class="group-title">Global &amp; Layout</div>
+    <div class="subgroup slate">
+      <div class="subgroup-title">Page &amp; Visibility</div>
+      <div class="setting-row">
+        <span class="setting-label">Page Background</span>
+        <input type="color" id="pageBgColor" data-setting="pageBgColor" value="#161512">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Top Menubar</span>
+        <label class="switch"><input type="checkbox" id="hideHeader" data-setting="hideHeader"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Liveboard</span>
+        <label class="switch"><input type="checkbox" id="hideChat" data-setting="hideChat"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Move Table/Tools</span>
+        <label class="switch"><input type="checkbox" id="hideMoveTable" data-setting="hideMoveTable"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Sidebar (Games)</span>
+        <label class="switch"><input type="checkbox" id="hideSide" data-setting="hideSide"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Underboard</span>
+        <label class="switch"><input type="checkbox" id="hideUnderboard" data-setting="hideUnderboard"><span
+            class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board appearance and eval-bar settings (not including the clock visuals) -->
+  <div class="group tab-panel" data-tab-panel="boardEval">
+    <div class="group-title">Board &amp; Eval Bar</div>
+
+    <div class="subgroup warm">
+      <div class="subgroup-title">Board Surface</div>
+      <div class="setting-row">
+        <span class="setting-label">Custom Board Colors</span>
+        <label class="switch"><input type="checkbox" id="useCustomBoardColors" data-setting="useCustomBoardColors"
+            checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Board Coordinates</span>
+        <label class="switch"><input type="checkbox" id="hideBoardCoords" data-setting="hideBoardCoords" checked><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Board Resize Handle</span>
+        <label class="switch"><input type="checkbox" id="hideBoardResizeHandle" data-setting="hideBoardResizeHandle"
+            checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Light Squares</span>
+        <input type="color" id="boardLightColor" data-setting="boardLightColor" value="#f0d9b5">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Dark Squares</span>
+        <input type="color" id="boardDarkColor" data-setting="boardDarkColor" value="#b58863">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Board Corner Radius</span>
+        <div class="range-wrap">
+          <input type="range" id="boardRadius" data-setting="boardRadius" min="0" max="30" value="0">
+          <span class="range-val" id="boardRadiusVal">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup cool">
+      <div class="subgroup-title">Arrow Colors</div>
+      <div class="setting-row">
+        <span class="setting-label">Arrow Primary</span>
+        <input type="color" id="arrowPrimaryColor" data-setting="arrowPrimaryColor" value="#15781b">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Arrow Secondary</span>
+        <input type="color" id="arrowSecondaryColor" data-setting="arrowSecondaryColor" value="#882020">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Arrow Tertiary</span>
+        <input type="color" id="arrowTertiaryColor" data-setting="arrowTertiaryColor" value="#003088">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Arrow Quaternary</span>
+        <input type="color" id="arrowQuaternaryColor" data-setting="arrowQuaternaryColor" value="#e68f00">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Suggested Move</span>
+        <input type="color" id="engineArrowColor" data-setting="engineArrowColor" value="#003088">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Suggested Move Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="engineArrowOpacity" data-setting="engineArrowOpacity" min="0" max="100" value="40">
+          <span class="range-val" id="engineArrowOpacityVal">40</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup green">
+      <div class="subgroup-title">Last Move</div>
+      <div class="setting-row">
+        <span class="setting-label">Last Move Highlight</span>
+        <input type="color" id="lastMoveColor" data-setting="lastMoveColor" value="#9bc700">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Last Move Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="lastMoveOpacity" data-setting="lastMoveOpacity" min="0" max="100" value="41">
+          <span class="range-val" id="lastMoveOpacityVal">41</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup slate">
+      <div class="subgroup-title">Eval Bar Geometry</div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Eval Gauge</span>
+        <label class="switch"><input type="checkbox" id="hideEval" data-setting="hideEval"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Eval Bar Width</span>
+        <div class="range-wrap">
+          <input type="range" id="evalBarWidth" data-setting="evalBarWidth" min="2" max="50" value="30">
+          <span class="range-val" id="evalBarWidthVal">30</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Eval Corner Radius</span>
+        <div class="range-wrap">
+          <input type="range" id="evalBarRadius" data-setting="evalBarRadius" min="0" max="20" value="0">
+          <span class="range-val" id="evalBarRadiusVal">0</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Eval Margin Left</span>
+        <div class="range-wrap">
+          <input type="range" id="evalMarginLeft" data-setting="evalMarginLeft" min="0" max="50" value="0">
+          <span class="range-val" id="evalMarginLeftVal">0</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Eval Margin Right</span>
+        <div class="range-wrap">
+          <input type="range" id="evalMarginRight" data-setting="evalMarginRight" min="0" max="50" value="30">
+          <span class="range-val" id="evalMarginRightVal">30</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup gold">
+      <div class="subgroup-title">Eval Markers</div>
+      <div class="setting-row">
+        <span class="setting-label">Show Eval Tick Marks</span>
+        <label class="switch"><input type="checkbox" id="showEvalTicks" data-setting="showEvalTicks" checked><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Eval Midline Color</span>
+        <input type="color" id="evalZeroColor" data-setting="evalZeroColor" value="#171717">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Eval Midline Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="evalZeroOpacity" data-setting="evalZeroOpacity" min="0" max="100" value="100">
+          <span class="range-val" id="evalZeroOpacityVal">100</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Eval Midline Width</span>
+        <div class="range-wrap">
+          <input type="range" id="evalZeroThickness" data-setting="evalZeroThickness" min="1" max="14" value="5">
+          <span class="range-val" id="evalZeroThicknessVal">5</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main board player-profile controls (regarding the pfp, title, name, flag, and rating below and above the board) -->
+  <div class="group tab-panel" data-tab-panel="playerProfile">
+    <div class="group-title">Player Profile</div>
+
+    <div class="subgroup slate">
+      <div class="subgroup-title">Visibility</div>
+      <div class="setting-row">
+        <span class="setting-label">Remove Profile Background</span>
+        <label class="switch"><input type="checkbox" id="hideProfileBg" data-setting="hideProfileBg"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row" id="useCustomProfileBgColorRow">
+        <span class="setting-label">Custom Profile Background Color</span>
+        <label class="switch"><input type="checkbox" id="useCustomProfileBgColor" data-setting="useCustomProfileBgColor"
+            checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row" id="profileBgColorRow">
+        <span class="setting-label">Profile Background Color</span>
+        <input type="color" id="profileBgColor" data-setting="profileBgColor" value="#212121">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Player Photo</span>
+        <label class="switch"><input type="checkbox" id="hidePhoto" data-setting="hidePhoto"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Flag</span>
+        <label class="switch"><input type="checkbox" id="hideFlagOption" data-setting="hideFlagOption"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Rating</span>
+        <label class="switch"><input type="checkbox" id="hideRatingOption" data-setting="hideRatingOption"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Material Diff</span>
+        <label class="switch"><input type="checkbox" id="hideMaterial" data-setting="hideMaterial" checked><span
+            class="slider"></span></label>
+      </div>
+    </div>
+
+    <!-- Custom ordering of player-profile items (title, name, rating, flag) -->
+    <div class="subgroup cool">
+      <div class="subgroup-title">Item Order</div>
+      <div class="setting-row">
+        <span class="setting-label">Custom Item Order</span>
+        <label class="switch"><input type="checkbox" id="customPlayerOrder" data-setting="customPlayerOrder"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label" style="align-self: flex-start; margin-top: 2px;">Drag &amp; Drop Order</span>
+        <ul id="playerOrderList" class="order-list">
+          <li class="order-item" draggable="true" data-order-item="titleName">Title + Name</li>
+          <li class="order-item" draggable="true" data-order-item="flag">Flag</li>
+          <li class="order-item" draggable="true" data-order-item="rating">Rating</li>
+        </ul>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label" id="playerOrderGap12Label">Gap Title-Name</span>
+        <div class="range-wrap">
+          <input type="range" id="playerOrderGap12" data-setting="playerOrderGap12" min="0" max="40" value="0">
+          <span class="range-val" id="playerOrderGap12Val">0</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label" id="playerOrderGap23Label">Gap Name-Flag</span>
+        <div class="range-wrap">
+          <input type="range" id="playerOrderGap23" data-setting="playerOrderGap23" min="0" max="40" value="6">
+          <span class="range-val" id="playerOrderGap23Val">6</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label" id="playerOrderGap34Label">Gap Flag-Rating</span>
+        <div class="range-wrap">
+          <input type="range" id="playerOrderGap34" data-setting="playerOrderGap34" min="0" max="40" value="6">
+          <span class="range-val" id="playerOrderGap34Val">6</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup warm">
+      <div class="subgroup-title">Layout</div>
+      <div class="setting-row" id="playerInfoLayoutRow">
+        <span class="setting-label">Flag &amp; Rating Layout</span>
+        <select id="playerInfoLayout" data-setting="playerInfoLayout">
+          <option value="default">Below Name</option>
+          <option value="inline" selected>Right of Name</option>
+        </select>
+      </div>
+      <div class="setting-context-note" id="playerInfoLayoutLockNotice" aria-live="polite"></div>
+      <div class="setting-row">
+        <span class="setting-label">Photo Radius</span>
+        <div class="range-wrap">
+          <input type="range" id="photoRadius" data-setting="photoRadius" min="0" max="50" value="0">
+          <span class="range-val" id="photoRadiusVal">0</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Player Bar Margin</span>
+        <div class="range-wrap">
+          <input type="range" id="playerMargin" data-setting="playerMargin" min="0" max="100" value="0">
+          <span class="range-val" id="playerMarginVal">0</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Player Profile Height</span>
+        <div class="range-wrap">
+          <input type="range" id="playerProfileHeight" data-setting="playerProfileHeight" min="45" max="120" value="45">
+          <span class="range-val" id="playerProfileHeightVal">45</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Profile Content Left Margin</span>
+        <div class="range-wrap">
+          <input type="range" id="playerProfileLeftMargin" data-setting="playerProfileLeftMargin" min="0" max="48"
+            value="0">
+          <span class="range-val" id="playerProfileLeftMarginVal">0</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Underboard Extra Margin</span>
+        <div class="range-wrap">
+          <input type="range" id="underboardMargin" data-setting="underboardMargin" min="0" max="200" value="30">
+          <span class="range-val" id="underboardMarginVal">30</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup green">
+      <div class="subgroup-title">Typography</div>
+      <div class="detail-box">
+        <div class="detail-box-title">Player Font</div>
+        <div class="setting-row">
+          <span class="setting-label">Player Font</span>
+          <div class="control-stack">
+            <select id="nameFontPreset" class="font-preset">
+              <option value="">Default (Lichess)</option>
+              <option value="Noto Sans">Noto Sans</option>
+              <option value="Roboto">Roboto</option>
+              <option value="System UI">System UI</option>
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Tahoma">Tahoma</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Lucida Console">Lucida Console</option>
+              <option value="__custom__">Custom</option>
+            </select>
+            <input type="text" id="nameFont" data-setting="nameFont" class="font-input" placeholder="Custom font family"
+              spellcheck="false" autocomplete="off">
+            <div class="control-help">Pick a preset or type a custom font family.</div>
+            <div class="font-status" id="nameFontStatus" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="setting-row" id="nameFontWeightRow">
+          <span class="setting-label">Player Font Weight</span>
+          <div class="control-stack">
+            <select id="nameFontWeight" data-setting="nameFontWeight">
+              <option value="">Default</option>
+              <option value="100">100 Thin</option>
+              <option value="200">200 Extra Light</option>
+              <option value="300">300 Light</option>
+              <option value="400">400 Regular</option>
+              <option value="500">500 Medium</option>
+              <option value="600">600 Semibold</option>
+              <option value="700">700 Bold</option>
+              <option value="800">800 Extra Bold</option>
+              <option value="900">900 Black</option>
+            </select>
+            <div class="control-status" id="nameFontWeightStatus" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Size Controls</div>
+        <div class="setting-row">
+          <span class="setting-label" style="align-self: flex-start; margin-top: 2px;">Profile Item Size</span>
+          <div style="display: flex; flex-direction: column; align-items: flex-end;">
+            <div class="range-wrap" style="margin-bottom: 6px;">
+              <input type="range" id="profileItemSize" data-setting="profileItemSize" min="10" max="60" value="18">
+              <span class="range-val" id="profileItemSizeVal">18</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; margin-bottom: 6px;">
+              <label><input type="checkbox" id="scaleTitle" data-setting="scaleTitle" checked> Title</label>
+              <label><input type="checkbox" id="scaleName" data-setting="scaleName" checked> Name</label>
+              <label><input type="checkbox" id="scaleRating" data-setting="scaleRating" checked> Rating</label>
+              <label><input type="checkbox" id="scaleFlag" data-setting="scaleFlag" checked> Flag</label>
+            </div>
+            <button id="resetProfileSizes"
+              style="background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: 0.2s;">Reset
+              Sizes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup gold">
+      <div class="subgroup-title">Text Colors</div>
+      <div class="detail-box">
+        <div class="detail-box-title">Title</div>
+        <div class="setting-row">
+          <span class="setting-label">Title Color</span>
+          <input type="color" id="titleColor" data-setting="titleColor" value="#ffaa00">
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Title Opacity</span>
+          <div class="range-wrap">
+            <input type="range" id="titleOpacity" data-setting="titleOpacity" min="0" max="100" value="100">
+            <span class="range-val" id="titleOpacityVal">100</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Name</div>
+        <div class="setting-row">
+          <span class="setting-label">Name Color</span>
+          <input type="color" id="nameColor" data-setting="nameColor" value="#ffffff">
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Name Opacity</span>
+          <div class="range-wrap">
+            <input type="range" id="nameOpacity" data-setting="nameOpacity" min="0" max="100" value="100">
+            <span class="range-val" id="nameOpacityVal">100</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Rating</div>
+        <div class="setting-row">
+          <span class="setting-label">Rating Color</span>
+          <input type="color" id="ratingColor" data-setting="ratingColor" value="#aaaaaa">
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Rating Opacity</span>
+          <div class="range-wrap">
+            <input type="range" id="ratingOpacity" data-setting="ratingOpacity" min="0" max="100" value="100">
+            <span class="range-val" id="ratingOpacityVal">100</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main board clock styling -->
+  <div class="group tab-panel" data-tab-panel="clockSettings">
+    <div class="group-title">Clock Settings</div>
+
+    <div class="subgroup slate">
+      <div class="subgroup-title">Base</div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Main Board Clocks</span>
+        <label class="switch"><input type="checkbox" id="hideClocks" data-setting="hideClocks"><span
+            class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Paused Clock Icon</span>
+        <label class="switch"><input type="checkbox" id="hideClockPauseIcon" data-setting="hideClockPauseIcon"><span
+            class="slider"></span></label>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Clock Font</div>
+        <div class="setting-row">
+          <span class="setting-label">Clock Font</span>
+          <div class="control-stack">
+            <select id="clockFontPreset" class="font-preset">
+              <option value="">Default (Lichess)</option>
+              <option value="Noto Sans">Noto Sans</option>
+              <option value="Roboto">Roboto</option>
+              <option value="System UI">System UI</option>
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Tahoma">Tahoma</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Lucida Console">Lucida Console</option>
+              <option value="__custom__">Custom</option>
+            </select>
+            <input type="text" id="clockFont" data-setting="clockFont" class="font-input"
+              placeholder="Custom font family" spellcheck="false" autocomplete="off">
+            <div class="control-help">Pick a preset or type a custom font family.</div>
+            <div class="font-status" id="clockFontStatus" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="setting-row" id="clockFontWeightRow">
+          <span class="setting-label">Clock Font Weight</span>
+          <div class="control-stack">
+            <select id="clockFontWeight" data-setting="clockFontWeight">
+              <option value="">Default</option>
+              <option value="100">100 Thin</option>
+              <option value="200">200 Extra Light</option>
+              <option value="300">300 Light</option>
+              <option value="400">400 Regular</option>
+              <option value="500">500 Medium</option>
+              <option value="600">600 Semibold</option>
+              <option value="700">700 Bold</option>
+              <option value="800">800 Extra Bold</option>
+              <option value="900">900 Black</option>
+            </select>
+            <div class="control-status" id="clockFontWeightStatus" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Clock Radius</span>
+        <div class="range-wrap">
+          <input type="range" id="clockRadius" data-setting="clockRadius" min="0" max="30" value="0">
+          <span class="range-val" id="clockRadiusVal">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup warm">
+      <div class="subgroup-title">Clock Border</div>
+      <div class="setting-row">
+        <span class="setting-label">Clock Border Color</span>
+        <input type="color" id="clockBorderColor" data-setting="clockBorderColor" value="#000000">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Clock Border Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="clockBorderOpacity" data-setting="clockBorderOpacity" min="0" max="100" value="100">
+          <span class="range-val" id="clockBorderOpacityVal">100</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Clock Border Width</span>
+        <div class="range-wrap">
+          <input type="range" id="clockBorderWidth" data-setting="clockBorderWidth" min="0" max="10" value="0">
+          <span class="range-val" id="clockBorderWidthVal">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup cool">
+      <div class="subgroup-title">White Clock Colors</div>
+      <div class="setting-row">
+        <span class="setting-label">White Player Clocks</span>
+        <div style="display: flex; gap: 8px;">
+          <input type="color" id="clockWhiteColor" data-setting="clockWhiteColor" value="#262421" title="Text Color">
+          <input type="color" id="clockWhiteBgColor" data-setting="clockWhiteBgColor" value="#ffffff"
+            title="Background Color">
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">White Text Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="clockWhiteTextOpacity" data-setting="clockWhiteTextOpacity" min="0" max="100"
+            value="100">
+          <span class="range-val" id="clockWhiteTextOpacityVal">100</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">White BG Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="clockWhiteBgOpacity" data-setting="clockWhiteBgOpacity" min="0" max="100" value="100">
+          <span class="range-val" id="clockWhiteBgOpacityVal">100</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup green">
+      <div class="subgroup-title">Black Clock Colors</div>
+      <div class="setting-row">
+        <span class="setting-label">Black Player Clocks</span>
+        <div style="display: flex; gap: 8px;">
+          <input type="color" id="clockBlackColor" data-setting="clockBlackColor" value="#ffffff" title="Text Color">
+          <input type="color" id="clockBlackBgColor" data-setting="clockBlackBgColor" value="#262421"
+            title="Background Color">
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Black Text Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="clockBlackTextOpacity" data-setting="clockBlackTextOpacity" min="0" max="100"
+            value="100">
+          <span class="range-val" id="clockBlackTextOpacityVal">100</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Black BG Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="clockBlackBgOpacity" data-setting="clockBlackBgOpacity" min="0" max="100" value="100">
+          <span class="range-val" id="clockBlackBgOpacityVal">100</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liveboard specific overrides, empty or untouched values inherit from the main board settings -->
+  <div class="group tab-panel" data-tab-panel="liveboardSettings">
+    <div class="group-title">Liveboard Settings</div>
+
+    <div class="subgroup slate">
+      <div class="subgroup-title">Visibility</div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Liveboard Photo</span>
+        <label class="switch"><input type="checkbox" id="hideLiveboardPhoto" data-setting="hideLiveboardPhoto"
+            checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Hide Liveboard Flag</span>
+        <label class="switch"><input type="checkbox" id="hideLiveboardFlag" data-setting="hideLiveboardFlag"
+            checked><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <div class="subgroup cool">
+      <div class="subgroup-title">Shape</div>
+      <div class="subgroup-note">Defaults follow the matching main board radius until you change a slider or restore
+        defaults.</div>
+      <div class="detail-box">
+        <div class="detail-box-title">Radii</div>
+        <div class="setting-row">
+          <span class="setting-label">Photo Radius</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardPhotoRadius" data-setting="liveboardPhotoRadius" min="0" max="50"
+              value="0">
+            <span class="range-val" id="liveboardPhotoRadiusVal">0</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Board Radius</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardBoardRadius" data-setting="liveboardBoardRadius" min="0" max="50"
+              value="6">
+            <span class="range-val" id="liveboardBoardRadiusVal">6</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Eval Bar Radius</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardEvalBarRadius" data-setting="liveboardEvalBarRadius" min="0" max="50"
+              value="0">
+            <span class="range-val" id="liveboardEvalBarRadiusVal">0</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Clock Radius</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardClockRadius" data-setting="liveboardClockRadius" min="0" max="50"
+              value="3">
+            <span class="range-val" id="liveboardClockRadiusVal">3</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Eval Bar</div>
+        <div class="setting-row">
+          <span class="setting-label">Eval Bar Width</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardEvalBarWidth" data-setting="liveboardEvalBarWidth" min="1" max="12"
+              value="6">
+            <span class="range-val" id="liveboardEvalBarWidthVal">6</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Profile Bar</div>
+        <div class="setting-row">
+          <span class="setting-label">Player Profile Height</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardProfileHeight" data-setting="liveboardProfileHeight" min="45" max="120"
+              value="45">
+            <span class="range-val" id="liveboardProfileHeightVal">45</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Profile Content Left Margin</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardProfileLeftMargin" data-setting="liveboardProfileLeftMargin" min="0"
+              max="48" value="0">
+            <span class="range-val" id="liveboardProfileLeftMarginVal">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Board Colors</div>
+        <div class="setting-row" id="useCustomLiveboardBoardColorsRow">
+          <span class="setting-label">Custom Board Colors</span>
+          <label class="switch"><input type="checkbox" id="useCustomLiveboardBoardColors"
+              data-setting="useCustomLiveboardBoardColors"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row" id="liveboardBoardLightColorRow">
+          <span class="setting-label">Light Squares</span>
+          <input type="color" id="liveboardBoardLightColor" data-setting="liveboardBoardLightColor" value="#f0d9b5">
+        </div>
+        <div class="setting-row" id="liveboardBoardDarkColorRow">
+          <span class="setting-label">Dark Squares</span>
+          <input type="color" id="liveboardBoardDarkColor" data-setting="liveboardBoardDarkColor" value="#b58863">
+        </div>
+      </div>
+    </div>
+
+    <div class="subgroup green">
+      <div class="subgroup-title">Typography</div>
+      <div class="subgroup-note">Leave empty to inherit the main board font.</div>
+      <div class="detail-box">
+        <div class="detail-box-title">Text Size</div>
+        <div class="setting-row">
+          <span class="setting-label">All Text</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardTextScale" data-setting="liveboardTextScale" min="60" max="180" value="93">
+            <span class="range-val" id="liveboardTextScaleVal">93</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Name Size</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardNameScale" data-setting="liveboardNameScale" min="60" max="180"
+              value="100">
+            <span class="range-val" id="liveboardNameScaleVal">100</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Title Size</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardTitleScale" data-setting="liveboardTitleScale" min="60" max="180"
+              value="100">
+            <span class="range-val" id="liveboardTitleScaleVal">100</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Clock Text Size</span>
+          <div class="range-wrap">
+            <input type="range" id="liveboardClockScale" data-setting="liveboardClockScale" min="60" max="180"
+              value="100">
+            <span class="range-val" id="liveboardClockScaleVal">100</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Name Font</div>
+        <div class="setting-row">
+          <span class="setting-label">Liveboard Player Font</span>
+          <div class="control-stack">
+            <select id="liveboardNameFontPreset" class="font-preset">
+              <option value="">Default (Main Board)</option>
+              <option value="Noto Sans">Noto Sans</option>
+              <option value="Roboto">Roboto</option>
+              <option value="System UI">System UI</option>
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Tahoma">Tahoma</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Lucida Console">Lucida Console</option>
+              <option value="__custom__">Custom</option>
+            </select>
+            <input type="text" id="liveboardNameFont" data-setting="liveboardNameFont" class="font-input"
+              placeholder="Custom font family" spellcheck="false" autocomplete="off">
+            <div class="control-help">Leave empty to inherit the main board font.</div>
+            <div class="font-status" id="liveboardNameFontStatus" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Title Font</div>
+        <div class="setting-row">
+          <span class="setting-label">Liveboard Title Font</span>
+          <div class="control-stack">
+            <select id="liveboardTitleFontPreset" class="font-preset">
+              <option value="">Default (Main Board)</option>
+              <option value="Noto Sans">Noto Sans</option>
+              <option value="Roboto">Roboto</option>
+              <option value="System UI">System UI</option>
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Trebuchet MS">Trebuchet MS</option>
+              <option value="Tahoma">Tahoma</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Lucida Console">Lucida Console</option>
+              <option value="__custom__">Custom</option>
+            </select>
+            <input type="text" id="liveboardTitleFont" data-setting="liveboardTitleFont" class="font-input"
+              placeholder="Custom font family" spellcheck="false" autocomplete="off">
+            <div class="control-help">Leave empty to inherit the main board title font.</div>
+            <div class="font-status" id="liveboardTitleFontStatus" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div hidden aria-hidden="true">
+      <input type="checkbox" id="hideLiveboardClocks" data-setting="hideLiveboardClocks">
+      <div id="useCustomLiveboardStyleRow"><input type="checkbox" id="useCustomLiveboardStyle"
+          data-setting="useCustomLiveboardStyle"></div>
+      <input type="hidden" id="liveboardScale" data-setting="liveboardScale" value="82">
+      <input type="hidden" id="liveboardFlagScale" data-setting="liveboardFlagScale" value="100">
+      <input type="hidden" id="liveboardEvalBarGap" data-setting="liveboardEvalBarGap" value="4">
+      <input type="hidden" id="liveboardNameFontWeight" data-setting="liveboardNameFontWeight" value="">
+      <div id="liveboardNameFontWeightRow"></div>
+      <input type="color" id="liveboardTitleColor" data-setting="liveboardTitleColor" value="#ffaa00">
+      <input type="hidden" id="liveboardTitleOpacity" data-setting="liveboardTitleOpacity" value="100">
+      <input type="text" id="liveboardClockFont" data-setting="liveboardClockFont" value="">
+      <select id="liveboardClockFontPreset">
+        <option value=""></option>
+      </select>
+      <div id="liveboardClockFontStatus"></div>
+      <input type="hidden" id="liveboardClockFontWeight" data-setting="liveboardClockFontWeight" value="">
+      <div id="liveboardClockFontWeightRow"></div>
+      <div id="liveboardNameFontWeightStatus"></div>
+      <div id="liveboardClockFontWeightStatus"></div>
+    </div>
+  </div>
+
+  <!-- Buttons for importing, exporting, and resetting settings -->
+  <div class="group tab-panel" data-tab-panel="actions">
+    <div class="group-title">Actions</div>
+    <div class="preset-actions">
+      <button type="button" id="exportCssSettings" class="preset-btn">Export CSS</button>
+      <button type="button" id="importCssSettings" class="preset-btn">Import CSS</button>
+      <button type="button" id="exportStandaloneCss" class="preset-btn">Export Standalone CSS</button>
+      <button type="button" id="resetAllSettings" class="preset-btn">Reset Defaults</button>
+    </div>
+  </div>
+
+  <div class="popup-footer"><a href="https://github.com/d1minik" target="_blank" rel="noopener noreferrer">made by
+      @d1minik</a></div>
+  <input type="file" id="importCssFileInput" accept=".css,text/css" style="display: none;">
+  <script src="shared.js"></script>
+  <script src="popup.js"></script>
+</body>
+
+</html>
