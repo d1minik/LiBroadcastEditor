@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "LiBroadcastEditor",
+  "version": "1.5",
+  "description": "Customize Lichess broadcast pages visually with LiBroadcastEditor.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://lichess.org/broadcast/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://lichess.org/broadcast/*"
+      ],
+      "js": [
+        "shared.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ]
+    }
+  ]
+}
