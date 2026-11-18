@@ -1,3 +1,6 @@
+import { initPopupView, popupIcon } from './popup-ui.js';
+import { initElementPicker } from './element-picker-popup.js';
+
 document.addEventListener('DOMContentLoaded', () => {
   const shared = globalThis.LiBroadcastShared;
   if (!shared) {
@@ -5,9 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const {
-    DEFAULT_PLAYER_ORDER,
     DEFAULT_SETTINGS,
-    FONT_PRESETS,
     PLAYER_ORDER_ITEMS: ORDER_ITEMS,
     PLAYER_ORDER_PARTS: ORDER_SEQUENCE_PARTS,
     normalizeFontLabel,
@@ -15,11 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
     resolveFontSetting: resolveSharedFontSetting
   } = shared;
 
-  const reportBoundaryError = (boundary, error, options = {}) => {
+  const saveStatus = document.getElementById('saveStatus');
+  const saveMessage = document.getElementById('saveMessage');
+  const retryStorage = document.getElementById('retryStorage');
+  const settingsContent = document.getElementById('settingsContent');
+  const presetFeedback = document.getElementById('presetFeedback');
+  const setSaveStatus = (state, message) => {
+    saveStatus.dataset.state = state;
+    if (saveMessage.textContent !== message) saveMessage.textContent = message;
+    retryStorage.hidden = state !== 'error';
+  };
+  const showPresetFeedback = (message, isError = false) => {
+    presetFeedback.toggleAttribute('data-error', isError);
+    presetFeedback.textContent = message;
+  };
+  const reportBoundaryError = (boundary, error, message) => {
     console.error(`[LiBroadcastEditor] ${boundary}`, error);
-    if (options.alertMessage) {
-      alert(options.alertMessage);
-    }
+    if (message) setSaveStatus('error', message);
   };
 
   const getRuntimeError = (fallbackMessage) => {
@@ -54,48 +67,24 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const elements = collectSettingElements();
+  const { refreshView, revealSettings } = initPopupView(elements, shared);
 
   const resetButton = document.getElementById('resetProfileSizes');
   const playerOrderList = document.getElementById('playerOrderList');
-  const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
-  const tabPanels = Array.from(document.querySelectorAll('.tab-panel'));
   const exportCssButton = document.getElementById('exportCssSettings');
   const importCssButton = document.getElementById('importCssSettings');
   const exportStandaloneCssButton = document.getElementById('exportStandaloneCss');
   const resetAllButton = document.getElementById('resetAllSettings');
   const importCssFileInput = document.getElementById('importCssFileInput');
-  const useCustomProfileBgColorRow = document.getElementById('useCustomProfileBgColorRow');
-  const profileBgColorRow = document.getElementById('profileBgColorRow');
-  const useCustomLiveboardBoardColorsRow = document.getElementById('useCustomLiveboardBoardColorsRow');
-  const liveboardBoardLightColorRow = document.getElementById('liveboardBoardLightColorRow');
-  const liveboardBoardDarkColorRow = document.getElementById('liveboardBoardDarkColorRow');
-  const playerInfoLayoutRow = document.getElementById('playerInfoLayoutRow');
   const playerInfoLayoutLockNotice = document.getElementById('playerInfoLayoutLockNotice');
   const playerOrderGapLabelElements = {
     playerOrderGap12: document.getElementById('playerOrderGap12Label'),
     playerOrderGap23: document.getElementById('playerOrderGap23Label'),
     playerOrderGap34: document.getElementById('playerOrderGap34Label')
   };
-  const fontStatusElements = {
-    nameFont: document.getElementById('nameFontStatus'),
-    clockFont: document.getElementById('clockFontStatus'),
-    liveboardNameFont: document.getElementById('liveboardNameFontStatus'),
-    liveboardTitleFont: document.getElementById('liveboardTitleFontStatus'),
-    liveboardClockFont: document.getElementById('liveboardClockFontStatus')
-  };
-  const fontPresetElements = {
-    nameFont: document.getElementById('nameFontPreset'),
-    clockFont: document.getElementById('clockFontPreset'),
-    liveboardNameFont: document.getElementById('liveboardNameFontPreset'),
-    liveboardTitleFont: document.getElementById('liveboardTitleFontPreset'),
-    liveboardClockFont: document.getElementById('liveboardClockFontPreset')
-  };
-  const fontWeightStatusElements = {
-    nameFontWeight: document.getElementById('nameFontWeightStatus'),
-    clockFontWeight: document.getElementById('clockFontWeightStatus'),
-    liveboardNameFontWeight: document.getElementById('liveboardNameFontWeightStatus'),
-    liveboardClockFontWeight: document.getElementById('liveboardClockFontWeightStatus')
-  };
+  const fontPresetElements = Object.fromEntries(
+    Array.from(document.querySelectorAll('[data-font-for]'), select => [select.dataset.fontFor, select])
+  );
   const STORAGE_WRITE_DEBOUNCE_MS = 250;
 
   const ORDER_LABELS = {
@@ -115,41 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
     flag: 'Flag',
     rating: 'Rating'
   };
-  const DEFAULT_ORDER = DEFAULT_SETTINGS.playerOrderList || DEFAULT_PLAYER_ORDER;
-  const FONT_WEIGHT_BY_FONT_KEY = {
-    nameFont: 'nameFontWeight',
-    clockFont: 'clockFontWeight',
-    liveboardNameFont: 'liveboardNameFontWeight',
-    liveboardClockFont: 'liveboardClockFontWeight'
-  };
-  const FONT_UI_TOGGLE_BY_KEY = {
-    liveboardClockFont: 'useCustomLiveboardStyle'
-  };
-  const FONT_WEIGHT_CONFIG = {
-    nameFontWeight: {
-      fontKey: 'nameFont',
-      row: document.getElementById('nameFontWeightRow')
-    },
-    clockFontWeight: {
-      fontKey: 'clockFont',
-      row: document.getElementById('clockFontWeightRow')
-    },
-    liveboardNameFontWeight: {
-      fontKey: 'liveboardNameFont',
-      row: document.getElementById('liveboardNameFontWeightRow'),
-      toggleKey: 'useCustomLiveboardStyle'
-    },
-    liveboardClockFontWeight: {
-      fontKey: 'liveboardClockFont',
-      row: document.getElementById('liveboardClockFontWeightRow'),
-      toggleKey: 'useCustomLiveboardStyle'
-    }
-  };
+  const FONT_WEIGHT_BY_FONT_KEY = { nameFont: 'nameFontWeight', clockFont: 'clockFontWeight' };
   const FONT_WEIGHT_SAMPLE = 'Hamburgefonsiv 0123456789';
 
   let draggedItem = null;
   let cachedContentCssText = null;
-  let layoutLockNoticeTimer = 0;
   let fontWeightMeasureRoot = null;
   const FONT_INPUT_KEYS = new Set(['nameFont', 'clockFont', 'liveboardNameFont', 'liveboardTitleFont', 'liveboardClockFont']);
   const OPTIONAL_COLOR_INPUT_FALLBACKS = {
@@ -179,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const formatOrderGapLabel = (left, right) => {
     const leftLabel = ORDER_PART_LABELS[left];
     const rightLabel = ORDER_PART_LABELS[right];
-    return leftLabel && rightLabel ? `Gap ${leftLabel}-${rightLabel}` : 'Gap';
+    return leftLabel && rightLabel ? `${leftLabel} to ${rightLabel.toLowerCase()}` : 'Gap';
   };
 
   const updatePlayerOrderGapLabels = (value) => {
@@ -197,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  const fontPresetByLabel = new Map(FONT_PRESETS.map((preset) => [normalizeFontLabel(preset.label), preset]));
+  const fontPresetByLabel = new Map(shared.FONT_PRESETS.map((preset) => [normalizeFontLabel(preset.label), preset]));
   const fontWeightSupportCache = new Map();
 
   const resolveFontSetting = (value) => {
@@ -282,15 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const updateFontAvailabilityState = (key) => {
     const input = elements[key];
-    const status = fontStatusElements[key];
+    const status = document.getElementById(key + 'Status');
     if (!input || !status) return;
-
-    const toggleKey = FONT_UI_TOGGLE_BY_KEY[key];
-    if (toggleKey && elements[toggleKey] && !elements[toggleKey].checked) {
-      input.classList.remove('font-missing');
-      status.textContent = '';
-      return;
-    }
 
     const resolvedFont = resolveFontSetting(input.value);
     const { css, preferredFamily } = resolvedFont;
@@ -311,68 +263,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!input || !select) return;
 
     const label = formatFontSettingForUi(input.value);
-    if (!label) {
-      select.value = '';
-      return;
-    }
-
     const preset = fontPresetByLabel.get(normalizeFontLabel(label));
-    select.value = preset ? preset.label : '__custom__';
+    select.value = preset ? preset.label : label ? '__custom__' : '';
+    input.hidden = select.value !== '__custom__';
   };
 
-  const updateFontWeightControlState = (weightKey) => {
-    const config = FONT_WEIGHT_CONFIG[weightKey];
+  const updateFontWeightControlState = (fontKey) => {
+    const weightKey = FONT_WEIGHT_BY_FONT_KEY[fontKey];
+    if (!weightKey) return;
     const control = elements[weightKey];
-    const status = fontWeightStatusElements[weightKey];
-    if (!config || !control || !status) return;
-
-    const fontValue = elements[config.fontKey] ? elements[config.fontKey].value : '';
-    const { css, preferredFamily } = resolveFontSetting(fontValue);
-
-    let enabled = true;
+    const status = document.getElementById(weightKey + 'Status');
+    const { css, preferredFamily } = resolveFontSetting(elements[fontKey].value);
     let reason = '';
-    if (config.toggleKey && elements[config.toggleKey] && !elements[config.toggleKey].checked) {
-      enabled = false;
-      reason = '';
-    } else if (css) {
-      if (!preferredFamily || !isFontInstalled(preferredFamily)) {
-        enabled = false;
-        reason = 'Weight options stay inactive until the selected font is available locally.';
-      } else if (!fontSupportsMultipleWeights(preferredFamily)) {
-        enabled = false;
-        reason = `${preferredFamily} does not expose multiple weights on this system.`;
-      }
+    if (css && !isFontInstalled(preferredFamily)) {
+      reason = 'Install the selected font to choose a weight.';
+    } else if (css && !fontSupportsMultipleWeights(preferredFamily)) {
+      reason = `${preferredFamily} has a single weight on this system.`;
     }
-
-    if (enabled) {
-      if (control.dataset.manualValue && !control.value) {
-        control.value = control.dataset.manualValue;
-      }
-      delete control.dataset.manualValue;
-      control.disabled = false;
-      control.removeAttribute('title');
-      status.textContent = '';
-      if (config.row) config.row.classList.remove('is-disabled');
-      return;
-    }
-
-    if (!control.dataset.manualValue) {
-      control.dataset.manualValue = control.value;
-    }
-    control.value = '';
-    control.disabled = true;
-    control.title = reason;
+    control.disabled = Boolean(reason);
     status.textContent = reason;
-    if (config.row) config.row.classList.add('is-disabled');
   };
 
-  const updateAllFontUiStates = () => {
-    for (const key of FONT_INPUT_KEYS) {
-      syncFontPresetSelection(key);
-      updateFontAvailabilityState(key);
-      const weightKey = FONT_WEIGHT_BY_FONT_KEY[key];
-      if (weightKey) updateFontWeightControlState(weightKey);
-    }
+  const updateFontUi = (key) => {
+    updateFontAvailabilityState(key);
+    updateFontWeightControlState(key);
+  };
+
+  const updateOrderButtons = () => {
+    const items = Array.from(playerOrderList.children);
+    items.forEach((item, index) => {
+      item.querySelector('[data-move="up"]').disabled = index === 0;
+      item.querySelector('[data-move="down"]').disabled = index === items.length - 1;
+    });
   };
 
   const renderOrderList = (value) => {
@@ -384,12 +306,22 @@ document.addEventListener('DOMContentLoaded', () => {
       li.className = 'order-item';
       li.draggable = true;
       li.dataset.orderItem = item;
-      li.textContent = ORDER_LABELS[item];
+      const label = document.createElement('span');
+      label.textContent = ORDER_LABELS[item];
+      li.append(popupIcon('grip-vertical'), label);
+      for (const direction of ['up', 'down']) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.move = direction;
+        button.setAttribute('aria-label', `Move ${ORDER_LABELS[item]} ${direction}`);
+        button.append(popupIcon('arrow-' + direction));
+        li.append(button);
+      }
       fragment.appendChild(li);
     }
 
-    playerOrderList.innerHTML = '';
-    playerOrderList.appendChild(fragment);
+    playerOrderList.replaceChildren(fragment);
+    updateOrderButtons();
     updatePlayerOrderGapLabels(order.join(','));
   };
 
@@ -414,8 +346,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return closest ? closest.element : null;
   };
 
-  const wireOrderDnD = () => {
-    if (!playerOrderList) return;
+  const wireOrderControls = () => {
+    playerOrderList.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-move]');
+      if (!button) return;
+      const item = button.closest('.order-item');
+      if (button.dataset.move === 'up') item.previousElementSibling.before(item);
+      else item.nextElementSibling.after(item);
+      updateOrderButtons();
+      (button.disabled ? item.querySelector('button:enabled') : button).focus();
+      saveAndNotify();
+    });
 
     playerOrderList.addEventListener('dragstart', (event) => {
       const item = event.target.closest('.order-item');
@@ -444,122 +385,23 @@ document.addEventListener('DOMContentLoaded', () => {
     playerOrderList.addEventListener('dragend', () => {
       if (draggedItem) draggedItem.classList.remove('dragging');
       draggedItem = null;
-      updatePlayerOrderGapLabels();
+      updateOrderButtons();
       saveAndNotify();
     });
   };
 
-  const activateTab = (tabId) => {
-    tabButtons.forEach((button) => {
-      const isActive = button.dataset.tabTarget === tabId;
-      button.classList.toggle('active', isActive);
-      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
-
-    tabPanels.forEach((panel) => {
-      panel.classList.toggle('active', panel.dataset.tabPanel === tabId);
-    });
-
-    localStorage.setItem('bcPopupActiveTab', tabId);
-  };
-
-  if (tabButtons.length && tabPanels.length) {
-    const storedTab = localStorage.getItem('bcPopupActiveTab');
-    const defaultTab = tabButtons[0].dataset.tabTarget;
-    const initialTab = tabButtons.some((button) => button.dataset.tabTarget === storedTab) ? storedTab : defaultTab;
-    activateTab(initialTab);
-
-    tabButtons.forEach((button) => {
-      button.addEventListener('click', () => activateTab(button.dataset.tabTarget));
-    });
-  }
-
-  const updateSliderLabels = () => {
-    for (const key in elements) {
-      if (elements[key].type === 'range') {
-        const valLabel = document.getElementById(key + 'Val');
-        if (valLabel) valLabel.textContent = elements[key].value;
-      }
-    }
-    updatePlayerOrderGapLabels();
-  };
-
   const syncCustomOrderLayoutLock = () => {
-    if (!elements.playerInfoLayout || !elements.customPlayerOrder) return;
-    const customEnabled = Boolean(elements.customPlayerOrder.checked);
-    if (customEnabled) {
-      if (!elements.playerInfoLayout.dataset.manualValue) {
-        elements.playerInfoLayout.dataset.manualValue = elements.playerInfoLayout.value;
-      }
-      elements.playerInfoLayout.value = 'inline';
-      elements.playerInfoLayout.disabled = true;
-      elements.playerInfoLayout.title = 'Disable "Custom Item Order" to switch back to "Below Name".';
-      if (playerInfoLayoutRow) playerInfoLayoutRow.classList.add('is-locked', 'is-disabled');
-    } else {
-      if (elements.playerInfoLayout.dataset.manualValue) {
-        elements.playerInfoLayout.value = elements.playerInfoLayout.dataset.manualValue;
-        delete elements.playerInfoLayout.dataset.manualValue;
-      }
-      elements.playerInfoLayout.disabled = false;
-      elements.playerInfoLayout.removeAttribute('title');
-      if (playerInfoLayoutRow) playerInfoLayoutRow.classList.remove('is-locked', 'is-disabled');
-      if (playerInfoLayoutLockNotice) {
-        playerInfoLayoutLockNotice.classList.remove('is-visible');
-        playerInfoLayoutLockNotice.textContent = '';
-      }
+    const layout = elements.playerInfoLayout;
+    const locked = elements.customPlayerOrder.checked;
+    if (locked && !layout.disabled) {
+      layout.dataset.manualValue = layout.value;
+      layout.value = 'inline';
+    } else if (!locked && layout.disabled) {
+      layout.value = layout.dataset.manualValue;
+      delete layout.dataset.manualValue;
     }
-  };
-
-  const showPlayerInfoLayoutLockNotice = () => {
-    if (!playerInfoLayoutLockNotice || !elements.playerInfoLayout || !elements.playerInfoLayout.disabled) return;
-    playerInfoLayoutLockNotice.textContent = 'Disable "Custom Item Order" if you want to switch this dropdown back to "Below Name".';
-    playerInfoLayoutLockNotice.classList.add('is-visible');
-    if (layoutLockNoticeTimer) clearTimeout(layoutLockNoticeTimer);
-    layoutLockNoticeTimer = window.setTimeout(() => {
-      playerInfoLayoutLockNotice.classList.remove('is-visible');
-      playerInfoLayoutLockNotice.textContent = '';
-    }, 2600);
-  };
-
-  const syncProfileBackgroundControls = () => {
-    if (!elements.hideProfileBg || !elements.useCustomProfileBgColor || !elements.profileBgColor) return;
-
-    const profileHidden = Boolean(elements.hideProfileBg.checked);
-    const customColorEnabled = Boolean(elements.useCustomProfileBgColor.checked);
-
-    elements.useCustomProfileBgColor.disabled = profileHidden;
-    elements.profileBgColor.disabled = profileHidden || !customColorEnabled;
-
-    if (useCustomProfileBgColorRow) {
-      useCustomProfileBgColorRow.classList.toggle('is-disabled', profileHidden);
-    }
-    if (profileBgColorRow) {
-      profileBgColorRow.classList.toggle('is-disabled', profileHidden || !customColorEnabled);
-    }
-  };
-
-  const syncLiveboardBoardColorControls = () => {
-    if (
-      !elements.useCustomLiveboardBoardColors ||
-      !elements.liveboardBoardLightColor ||
-      !elements.liveboardBoardDarkColor
-    ) {
-      return;
-    }
-
-    const customEnabled = Boolean(elements.useCustomLiveboardBoardColors.checked);
-    elements.liveboardBoardLightColor.disabled = !customEnabled;
-    elements.liveboardBoardDarkColor.disabled = !customEnabled;
-
-    if (useCustomLiveboardBoardColorsRow) {
-      useCustomLiveboardBoardColorsRow.classList.remove('is-disabled');
-    }
-    if (liveboardBoardLightColorRow) {
-      liveboardBoardLightColorRow.classList.toggle('is-disabled', !customEnabled);
-    }
-    if (liveboardBoardDarkColorRow) {
-      liveboardBoardDarkColorRow.classList.toggle('is-disabled', !customEnabled);
-    }
+    layout.disabled = locked;
+    playerInfoLayoutLockNotice.hidden = !locked;
   };
 
   const syncInheritedLiveboardRadiusControls = () => {
@@ -576,15 +418,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Positive visibility switches still read and write the original hide* keys.
+  const checkboxValue = (input, value) => input.hasAttribute('data-inverted') ? !value : value;
+
   const collectSettingsFromUi = () => {
-    syncCustomOrderLayoutLock();
-    syncProfileBackgroundControls();
-    syncLiveboardBoardColorControls();
-    syncInheritedLiveboardRadiusControls();
     const settings = {};
     for (const key in elements) {
       if (elements[key].type === 'checkbox') {
-        settings[key] = elements[key].checked;
+        settings[key] = checkboxValue(elements[key], elements[key].checked);
       } else if (Object.prototype.hasOwnProperty.call(OPTIONAL_COLOR_INPUT_FALLBACKS, key)) {
         settings[key] = elements[key].dataset.customized === '1' ? elements[key].value : '';
       } else if (Object.prototype.hasOwnProperty.call(LIVEBOARD_RADIUS_INHERIT_MAP, key)) {
@@ -604,38 +445,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const getDefaultSettings = () => ({ ...DEFAULT_SETTINGS });
 
-  const clearTransientUiState = () => {
-    if (layoutLockNoticeTimer) {
-      clearTimeout(layoutLockNoticeTimer);
-      layoutLockNoticeTimer = 0;
+  const refreshControls = (resetDrafts = false) => {
+    syncCustomOrderLayoutLock();
+    syncInheritedLiveboardRadiusControls();
+    updatePlayerOrderGapLabels();
+    for (const [key, button] of inheritButtons) {
+      button.hidden = key === 'nameColor' ? elements[key].dataset.customized !== '1' : elements[key].dataset.inherit !== '0';
     }
-    if (playerInfoLayoutLockNotice) {
-      playerInfoLayoutLockNotice.classList.remove('is-visible');
-      playerInfoLayoutLockNotice.textContent = '';
-    }
-    if (elements.playerInfoLayout) {
-      delete elements.playerInfoLayout.dataset.manualValue;
-      elements.playerInfoLayout.disabled = false;
-      elements.playerInfoLayout.removeAttribute('title');
-    }
-    if (playerInfoLayoutRow) {
-      playerInfoLayoutRow.classList.remove('is-locked', 'is-disabled');
-    }
-    for (const weightKey in FONT_WEIGHT_CONFIG) {
-      const control = elements[weightKey];
-      if (!control) continue;
-      delete control.dataset.manualValue;
-      control.disabled = false;
-      control.removeAttribute('title');
-    }
+    refreshView(resetDrafts);
   };
 
   const applySettingsToUi = (settings) => {
-    clearTransientUiState();
+    delete elements.playerInfoLayout.dataset.manualValue;
+    elements.playerInfoLayout.disabled = false;
     for (const key in elements) {
       if (settings[key] === undefined) continue;
       if (elements[key].type === 'checkbox') {
-        elements[key].checked = Boolean(settings[key]);
+        elements[key].checked = checkboxValue(elements[key], Boolean(settings[key]));
       } else if (Object.prototype.hasOwnProperty.call(OPTIONAL_COLOR_INPUT_FALLBACKS, key)) {
         const value = String(settings[key] ?? '').trim();
         elements[key].value = value || OPTIONAL_COLOR_INPUT_FALLBACKS[key];
@@ -658,12 +484,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderOrderList(settings.playerOrderList);
     }
 
-    syncCustomOrderLayoutLock();
-    syncProfileBackgroundControls();
-    syncLiveboardBoardColorControls();
-    syncInheritedLiveboardRadiusControls();
-    updateSliderLabels();
-    updateAllFontUiStates();
+    for (const key of Object.keys(fontPresetElements)) {
+      syncFontPresetSelection(key);
+      updateFontUi(key);
+    }
+    refreshControls(true);
   };
 
   const toCssSettingName = (key) => key.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`);
@@ -1237,14 +1062,15 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     reader.onload = () => {
       try {
         importCssSettingsText(String(reader.result || ''));
+        showPresetFeedback(`Imported ${file.name}.`);
       } catch (error) {
-        alert(`CSS import failed: ${error.message}`);
+        showPresetFeedback(error.message, true);
       } finally {
         if (importCssFileInput) importCssFileInput.value = '';
       }
     };
     reader.onerror = () => {
-      alert('The CSS file could not be read.');
+      showPresetFeedback('The CSS file could not be read.', true);
       if (importCssFileInput) importCssFileInput.value = '';
     };
     reader.readAsText(file);
@@ -1273,129 +1099,111 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     });
   };
 
-  const persistSettings = (settings) => {
+  let editRevision = 0;
+  let pendingWrite = null;
+  let writeTimer;
+
+  const flushStorageWrite = () => {
+    if (!pendingWrite) return;
+    clearTimeout(writeTimer);
+    const { settings, revision } = pendingWrite;
+    pendingWrite = null;
     chrome.storage.sync.set(settings, () => {
-      const storageError = getRuntimeError('Settings could not be saved.');
-      if (storageError) {
-        reportBoundaryError('storage.sync.set', storageError, {
-          alertMessage: 'Settings could not be saved.'
-        });
+      const error = getRuntimeError('Settings could not be saved.');
+      if (revision !== editRevision) return;
+      if (error) {
+        reportBoundaryError('storage.sync.set', error, 'Could not save settings');
         return;
       }
-
+      setSaveStatus('ready', 'Changes saved');
       notifyActiveTab(settings);
     });
   };
 
-  let pendingStorageWriteTimer = 0;
-  let pendingStorageWriteSettings = null;
-
-  const cancelPendingStorageWrite = () => {
-    if (!pendingStorageWriteTimer) return;
-    clearTimeout(pendingStorageWriteTimer);
-    pendingStorageWriteTimer = 0;
-  };
-
-  const queueStorageWrite = (settings) => {
-    pendingStorageWriteSettings = settings;
-    cancelPendingStorageWrite();
-    pendingStorageWriteTimer = setTimeout(() => {
-      pendingStorageWriteTimer = 0;
-      if (!pendingStorageWriteSettings) return;
-      const queuedSettings = pendingStorageWriteSettings;
-      pendingStorageWriteSettings = null;
-      persistSettings(queuedSettings);
-    }, STORAGE_WRITE_DEBOUNCE_MS);
-  };
-
-  const collectPreparedSettings = () => {
-    syncCustomOrderLayoutLock();
-    syncProfileBackgroundControls();
-    syncLiveboardBoardColorControls();
-    updateSliderLabels();
-    updateAllFontUiStates();
-    return collectSettingsFromUi();
-  };
-
-  const loadStoredSettings = (onLoaded) => {
-    chrome.storage.sync.get(STORAGE_KEYS, (result) => {
-      const storageError = getRuntimeError('Stored settings could not be loaded.');
-      if (storageError) {
-        reportBoundaryError('storage.sync.get', storageError, {
-          alertMessage: 'Stored settings could not be loaded. Default values will be used.'
-        });
-        onLoaded({});
-        return;
-      }
-
-      onLoaded(result || {});
-    });
-  };
-
-  const saveAndNotify = (options = {}) => {
-    const { debounceStorageWrite = false } = options;
-    const settings = collectPreparedSettings();
-
+  const saveAndNotify = ({ debounceStorageWrite = false } = {}) => {
+    refreshControls();
+    const settings = collectSettingsFromUi();
+    pendingWrite = { settings, revision: ++editRevision };
+    clearTimeout(writeTimer);
+    setSaveStatus('saving', 'Saving…');
     if (debounceStorageWrite) {
       notifyActiveTab(settings);
-      queueStorageWrite(settings);
-      return;
+      writeTimer = setTimeout(flushStorageWrite, STORAGE_WRITE_DEBOUNCE_MS);
+    } else {
+      flushStorageWrite();
     }
-
-    pendingStorageWriteSettings = null;
-    cancelPendingStorageWrite();
-    persistSettings(settings);
   };
-
-  loadStoredSettings((result) => {
-    const initialSettings = { ...getDefaultSettings() };
-    for (const key in elements) {
-      if (result[key] !== undefined) {
-        initialSettings[key] = result[key];
-      }
-    }
-    initialSettings.playerOrderList = result.playerOrderList || DEFAULT_ORDER;
-    applySettingsToUi(initialSettings);
+  window.addEventListener('pagehide', flushStorageWrite);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) flushStorageWrite();
   });
+
+  const inheritButtons = new Map();
+  for (const key of [...Object.keys(LIVEBOARD_RADIUS_INHERIT_MAP), 'nameColor']) {
+    const input = elements[key];
+    const label = input.closest('.setting-row').querySelector('.row-label');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'text-button';
+    button.textContent = key === 'nameColor' ? 'Use Lichess default' : 'Use main board radius';
+    button.setAttribute('aria-label', button.textContent + ' for ' + label.textContent.trim().toLowerCase());
+    button.addEventListener('click', () => {
+      if (key === 'nameColor') {
+        input.dataset.customized = '0';
+        input.value = OPTIONAL_COLOR_INPUT_FALLBACKS.nameColor;
+      } else {
+        input.dataset.inherit = '1';
+      }
+      input.focus();
+      saveAndNotify();
+    });
+    label.append(button);
+    inheritButtons.set(key, button);
+  }
+
+  const loadStoredSettings = () => {
+    setSaveStatus('loading', 'Loading settings…');
+    chrome.storage.sync.get(STORAGE_KEYS, (result) => {
+      const error = getRuntimeError('Stored settings could not be loaded.');
+      if (error) {
+        reportBoundaryError('storage.sync.get', error, 'Could not load saved settings');
+        return;
+      }
+      applySettingsToUi({ ...getDefaultSettings(), ...result });
+      setSaveStatus('ready', 'Saves automatically');
+      settingsContent.inert = false;
+      initElementPicker(revealSettings);
+    });
+  };
+  retryStorage.addEventListener('click', () => {
+    if (settingsContent.inert) loadStoredSettings();
+    else saveAndNotify();
+  });
+  loadStoredSettings();
 
   resetButton.addEventListener('click', () => {
     elements.profileItemSize.value = DEFAULT_SETTINGS.profileItemSize;
-    updateSliderLabels();
     saveAndNotify();
   });
 
-  for (const key of FONT_INPUT_KEYS) {
+  for (const [key, select] of Object.entries(fontPresetElements)) {
     const input = elements[key];
-    if (!input) continue;
-    const syncFontUi = () => {
+    input.addEventListener('input', () => updateFontUi(key));
+    input.addEventListener('change', () => {
       syncFontPresetSelection(key);
-      updateFontAvailabilityState(key);
-      const weightKey = FONT_WEIGHT_BY_FONT_KEY[key];
-      if (weightKey) updateFontWeightControlState(weightKey);
-    };
-    input.addEventListener('input', syncFontUi);
-    input.addEventListener('change', syncFontUi);
-  }
-
-  for (const key in fontPresetElements) {
-    const select = fontPresetElements[key];
-    if (!select) continue;
+      updateFontUi(key);
+    });
     select.addEventListener('change', () => {
-      if (select.value === '') {
-        elements[key].value = '';
-      } else if (select.value !== '__custom__') {
-        elements[key].value = select.value;
-      }
-
-      syncFontPresetSelection(key);
-      updateFontAvailabilityState(key);
-      const weightKey = FONT_WEIGHT_BY_FONT_KEY[key];
-      if (weightKey) updateFontWeightControlState(weightKey);
-      saveAndNotify();
-
       if (select.value === '__custom__') {
-        elements[key].focus();
+        input.hidden = false;
+        input.focus();
+        input.select();
+        return;
       }
+      input.value = select.value;
+      input.hidden = true;
+      updateFontUi(key);
+      saveAndNotify();
     });
   }
 
@@ -1411,7 +1219,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
 
   for (const key in elements) {
     elements[key].addEventListener('change', saveAndNotify);
-    if (elements[key].type === 'text' || elements[key].type === 'number' || elements[key].type === 'range') {
+    if (['text', 'number', 'range', 'color'].includes(elements[key].type)) {
       elements[key].addEventListener('input', () => {
         saveAndNotify({ debounceStorageWrite: true });
       });
@@ -1428,23 +1236,13 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     control.addEventListener('change', markCustomized, true);
   }
 
-  for (const sourceKey of Object.values(LIVEBOARD_RADIUS_INHERIT_MAP)) {
-    const control = elements[sourceKey];
-    if (!control) continue;
-    const syncInheritedControls = () => {
-      syncInheritedLiveboardRadiusControls();
-      updateSliderLabels();
-    };
-    control.addEventListener('input', syncInheritedControls);
-    control.addEventListener('change', syncInheritedControls);
-  }
-
   if (exportCssButton) {
     exportCssButton.addEventListener('click', () => {
       const settings = collectSettingsFromUi();
       const cssText = buildCssExportText(settings);
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       triggerCssDownload(`libroadcasteditor-settings-${timestamp}.css`, cssText);
+      showPresetFeedback('Preset exported.');
     });
   }
 
@@ -1455,8 +1253,9 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
         const cssText = await buildStandaloneCssExportText(settings);
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         triggerCssDownload(`libroadcasteditor-standalone-${timestamp}.css`, cssText);
+        showPresetFeedback('Stylesheet exported.');
       } catch (error) {
-        alert(`Standalone CSS export failed: ${error.message}`);
+        showPresetFeedback(`Stylesheet export failed. ${error.message}`, true);
       }
     });
   }
@@ -1469,25 +1268,21 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     });
   }
 
-  if (resetAllButton) {
-    resetAllButton.addEventListener('click', () => {
-      const defaults = getDefaultSettings();
-      applySettingsToUi(defaults);
-      saveAndNotify();
-    });
+  const resetDialog = document.getElementById('resetDialog');
+  resetAllButton.addEventListener('click', () => {
+    resetDialog.returnValue = 'cancel';
+    resetDialog.showModal();
+  });
+  resetDialog.addEventListener('close', () => {
+    if (resetDialog.returnValue !== 'reset') return;
+    applySettingsToUi(getDefaultSettings());
+    saveAndNotify();
+    showPresetFeedback('Default settings restored.');
+  });
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => Object.keys(fontPresetElements).forEach(updateFontUi));
   }
 
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => {
-      updateAllFontUiStates();
-    }).catch(() => {});
-  }
-
-  if (playerInfoLayoutRow) {
-    playerInfoLayoutRow.addEventListener('click', () => {
-      showPlayerInfoLayoutLockNotice();
-    });
-  }
-
-  wireOrderDnD();
+  wireOrderControls();
 });

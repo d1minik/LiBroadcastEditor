@@ -365,7 +365,6 @@ html.bc-multiboard-page.bc-custom-liveboard-board main.analyse.is-relay .box.rel
     box-sizing: border-box !important;
     box-shadow: none !important;
     filter: none !important;
-    background-image: none !important;
     background-clip: padding-box !important;
 }
 
@@ -376,7 +375,8 @@ html.bc-multiboard-page.bc-custom-liveboard-board main.analyse.is-relay .box.rel
     background-image: none !important;
 }
 
-.analyse .eval-gauge::before {
+/* Older gauges render the black segment as a separate element. */
+.analyse .eval-gauge:has(> .black)::before {
     content: "" !important;
     position: absolute !important;
     top: 0 !important;
@@ -393,7 +393,7 @@ html.bc-multiboard-page.bc-custom-liveboard-board main.analyse.is-relay .box.rel
     background-image: none !important;
 }
 
-html.light .analyse .eval-gauge::before {
+html.light .analyse .eval-gauge:has(> .black)::before {
     background: #606060 !important;
 }
 

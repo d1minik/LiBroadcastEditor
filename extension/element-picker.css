@@ -1,0 +1,66 @@
+#bc-element-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+#bc-element-picker.bc-picking {
+  pointer-events: auto;
+  cursor: crosshair;
+  user-select: none;
+}
+
+#bc-element-picker .bc-picker-bar {
+  position: absolute;
+  inset: 12px 12px auto;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 9px 7px 12px;
+  border: 1px solid #555149;
+  border-radius: 6px;
+  background: #201f1d;
+  color: #f3f0e9;
+  box-shadow: 0 3px 16px #0007;
+  font: 13px/1.4 system-ui, sans-serif;
+  pointer-events: auto;
+  cursor: default;
+  z-index: 1;
+}
+
+#bc-element-picker button {
+  padding: 4px 8px;
+  border: 1px solid #706b61;
+  border-radius: 4px;
+  background: #2c2b28;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+#bc-element-picker button:focus-visible {
+  outline: 2px solid #ecb46e;
+  outline-offset: 2px;
+}
+
+#bc-element-picker .bc-picker-outline {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid #ecb46e;
+  background: #ecb46e22;
+  box-shadow: inset 0 0 0 1px #201f1d;
+  pointer-events: none;
+}
+
+#bc-element-picker.bc-picker-hit-test,
+#bc-element-picker.bc-picker-hit-test .bc-picker-bar {
+  pointer-events: none;
+}
+
+@media (forced-colors: active) {
+  #bc-element-picker .bc-picker-outline { border-color: Highlight; }
+}

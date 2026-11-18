@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LiBroadcastEditor",
-  "version": "1.5",
+  "version": "2",
   "description": "Customize Lichess broadcast pages visually with LiBroadcastEditor.",
   "permissions": [
     "storage"
@@ -9,6 +9,9 @@
   "host_permissions": [
     "*://lichess.org/broadcast/*"
   ],
+  "background": {
+    "service_worker": "element-picker-worker.js"
+  },
   "action": {
     "default_popup": "popup.html"
   },
@@ -19,10 +22,12 @@
       ],
       "js": [
         "shared.js",
-        "content.js"
+        "content.js",
+        "element-picker.js"
       ],
       "css": [
-        "content.css"
+        "content.css",
+        "element-picker.css"
       ]
     }
   ]

@@ -1,3 +1,9 @@
+# Repository root allowlist
+/*
+!/.gitignore
+!/extension/
+!/releases/
+
 # OS files
 .DS_Store
 Thumbs.db
