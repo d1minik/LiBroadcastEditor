@@ -4,8 +4,56 @@ body {
 }
 
 /* Visibility Overrides */
-#top, .site-header {
-    display: var(--bc-display-header, flex) !important;
+/* Query the same settings container for the header and its descendants. */
+:root {
+    container-name: bc-settings;
+}
+
+@container bc-settings style(--bc-hide-top-menu: true) {
+    main.analyse.is-relay .relay-tour__side > .relay-games {
+        anchor-name: --bc-broadcast-games;
+    }
+
+    main.analyse.is-relay .analyse__board.main-board,
+    main.analyse.is-relay:not(:has(.analyse__board.main-board)) .relay-tour > .study__multiboard .now-playing
+        > :nth-child(1 of .mini-game:has(.mini-game__board)) .mini-game__board {
+        anchor-name: --bc-broadcast-board;
+    }
+
+    :is(#top, .site-header):has(> .site-title, > .site-title-nav > .site-title) {
+        anchor-name: --bc-broadcast-header;
+        background: transparent !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        transform: none !important;
+
+        &::before,
+        & > :not(.site-title-nav, .site-title),
+        & > .site-title-nav > :not(.site-title) {
+            display: none !important;
+        }
+
+        & .site-title {
+            display: flex !important;
+            margin-inline-start: 0.5rem !important;
+        }
+
+        & .site-title .site-icon {
+            display: block !important;
+        }
+
+        @supports (left: anchor(left)) {
+            body:has(main.analyse.is-relay :is(.relay-tour__side > .relay-games, .main-board, .study__multiboard .mini-game__board)) & .site-title {
+                position: fixed;
+                position-anchor: --bc-broadcast-header;
+                top: anchor(top, 0px);
+                left: max(0px, anchor(--bc-broadcast-games left, anchor(--bc-broadcast-board left, 1.5rem)));
+                height: anchor-size(height, var(---site-header-height, 60px));
+                margin-inline-start: 0 !important;
+                padding-left: 0;
+            }
+        }
+    }
 }
 
 .mchat, .mchat-mod {

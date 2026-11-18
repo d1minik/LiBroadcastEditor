@@ -805,7 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     setVar('--bc-page-bg', settings.pageBgColor || defaults.pageBgColor);
-    setVar('--bc-display-header', settings.hideHeader ? 'none' : 'flex');
+    setVar('--bc-hide-top-menu', settings.hideHeader ? 'true' : '');
     setVar('--bc-display-liveboard', settings.hideChat ? 'none' : 'flex');
     setVar('--bc-display-move-table', settings.hideMoveTable ? 'none' : 'flex');
     setVar('--bc-display-side', settings.hideSide ? 'none' : 'flex');

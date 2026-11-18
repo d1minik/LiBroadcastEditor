@@ -628,7 +628,7 @@ function applySettings(settings) {
   root.style.setProperty('--bc-page-bg', settings.pageBgColor);
 
   // Visibility Toggles
-  root.style.setProperty('--bc-display-header', settings.hideHeader ? 'none' : '');
+  root.style.setProperty('--bc-hide-top-menu', settings.hideHeader ? 'true' : '');
   root.style.setProperty('--bc-display-liveboard', settings.hideChat ? 'none' : '');
   root.style.setProperty('--bc-display-move-table', settings.hideMoveTable ? 'none' : '');
   root.style.setProperty('--bc-display-side', settings.hideSide ? 'none' : '');
