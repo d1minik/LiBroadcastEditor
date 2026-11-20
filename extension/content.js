@@ -740,6 +740,8 @@ function applySettings(settings) {
   } else {
       root.classList.remove('bc-custom-liveboard-board');
   }
+  const boardCoordinateScale = clamp(parseNumber(settings.boardCoordinateScale, 100), 100, 200);
+  root.style.setProperty('--bc-board-coordinate-scale', `${boardCoordinateScale}%`);
   const boardRadius = Math.max(0, parseNumber(settings.boardRadius, parseNumber(defaultSettings.boardRadius, 6)));
   root.style.setProperty('--bc-board-radius', `${boardRadius}px`);
   root.style.setProperty('--bc-board-light', settings.boardLightColor);

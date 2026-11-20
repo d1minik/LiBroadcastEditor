@@ -176,6 +176,14 @@
               </div>
               <input type="checkbox" id="hideBoardCoords" data-setting="hideBoardCoords" role="switch" data-inverted>
             </div>
+            <div data-requires="hideBoardCoords" hidden>
+              <div class="setting-row" data-keywords="rank file labels">
+                <div class="row-label">
+                  <label for="boardCoordinateScale">Coordinate size</label>
+                </div>
+                <input type="range" id="boardCoordinateScale" data-setting="boardCoordinateScale" min="100" max="200" data-unit="%">
+              </div>
+            </div>
             <div class="setting-row">
               <div class="row-label">
                 <label for="hideBoardResizeHandle">Resize handle</label>

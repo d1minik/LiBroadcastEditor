@@ -659,6 +659,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setVar('--bc-eval-tools-shift', `${evalToolsShift}px`);
     setVar('--bc-underboard-margin', `${underboardMargin}px`);
 
+    const boardCoordinateScale = clamp(parseNumber(settings.boardCoordinateScale, 100), 100, 200);
+    setVar('--bc-board-coordinate-scale', `${boardCoordinateScale}%`);
     setVar('--bc-board-radius', `${Math.max(0, parseNumber(settings.boardRadius, parseNumber(defaults.boardRadius, 6)))}px`);
     setVar('--bc-board-light', settings.boardLightColor || defaults.boardLightColor);
     setVar('--bc-board-dark', settings.boardDarkColor || defaults.boardDarkColor);

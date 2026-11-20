@@ -20,6 +20,7 @@
     hideUnderboard: false,
     hideEval: false,
     hideBoardCoords: true,
+    boardCoordinateScale: '100',
     hideBoardResizeHandle: true,
     useCustomBoardColors: true,
     boardLightColor: '#f0d9b5',

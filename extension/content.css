@@ -246,6 +246,47 @@ main.analyse.is-relay .mchat-mod + .vertical-resize {
 
 .analyse__board.main-board coords {
     display: var(--bc-display-board-coords, flex) !important;
+    zoom: var(--bc-board-coordinate-scale, 100%) !important;
+}
+
+/* Keep enlarged in-board labels in the square corners and above the pieces. */
+@container bc-settings style(--bc-board-coordinate-scale) and (not style(--bc-board-coordinate-scale: 100%)) {
+    .coords-in .is2d .analyse__board.main-board coords:is(.files, .ranks) {
+        zoom: 100% !important;
+        z-index: 5;
+        --bc-coordinate-corner-clearance: max(0px, calc(var(--bc-board-radius, 6px) / 3 - 2px));
+
+        & > coord {
+            flex: 1;
+            font-size: var(--bc-board-coordinate-scale);
+            line-height: 1;
+        }
+
+        &.files {
+            bottom: 2px;
+            height: auto;
+
+            & > coord {
+                padding-left: 2px;
+            }
+
+            &:not(.black) > coord:first-child,
+            &.black > coord:last-child {
+                translate: var(--bc-coordinate-corner-clearance) calc(-1 * var(--bc-coordinate-corner-clearance));
+            }
+        }
+
+        &.ranks {
+            top: 2px;
+            right: 2px;
+            width: auto;
+
+            &:not(.black) > coord:last-child,
+            &.black > coord:first-child {
+                translate: calc(-1 * var(--bc-coordinate-corner-clearance)) var(--bc-coordinate-corner-clearance);
+            }
+        }
+    }
 }
 
 .analyse__board.main-board cg-resize {
