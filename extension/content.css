@@ -822,8 +822,9 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     box-shadow: none !important;
 }
 
-main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before {
+/* Only legacy mini gauges need a cap over the separate black segment. */
+main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before,
+main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before {
     content: "" !important;
     position: absolute !important;
     top: 0 !important;
@@ -837,8 +838,8 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     z-index: 2 !important;
 }
 
-html.light main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before,
-html.light main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge::before {
+html.light main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before,
+html.light main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before {
     background: #606060 !important;
 }
 
@@ -1117,7 +1118,7 @@ html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboa
     box-sizing: border-box !important;
 }
 
-html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge::before {
+html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before {
     content: "" !important;
     position: absolute !important;
     top: 0 !important;
@@ -1131,7 +1132,7 @@ html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboa
     z-index: 2 !important;
 }
 
-html.light.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge::before {
+html.light.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before {
     background: #606060 !important;
 }
 
