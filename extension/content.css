@@ -822,36 +822,6 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
     box-shadow: none !important;
 }
 
-/* Only legacy mini gauges need a cap over the separate black segment. */
-main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before {
-    content: "" !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: calc(var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) + 1px) !important;
-    border-top-left-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
-    border-top-right-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
-    background: #444 !important;
-    pointer-events: none !important;
-    z-index: 2 !important;
-}
-
-html.light main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before,
-html.light main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before {
-    background: #606060 !important;
-}
-
-main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge .mini-game__gauge__black,
-main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge .mini-game__gauge__black {
-    position: relative !important;
-    z-index: 1 !important;
-    border-top-left-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
-    border-top-right-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
-    box-shadow: none !important;
-}
-
 main.analyse.is-relay .mchat .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge tick,
 main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .mini-game__gauge tick {
     border-bottom-color: var(--bc-eval-zero-color, var(--m-accent--fade-50)) !important;
@@ -1116,31 +1086,6 @@ html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboa
     overflow: hidden !important;
     position: relative !important;
     box-sizing: border-box !important;
-}
-
-html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before {
-    content: "" !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: calc(var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) + 1px) !important;
-    border-top-left-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
-    border-top-right-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
-    background: #444 !important;
-    pointer-events: none !important;
-    z-index: 2 !important;
-}
-
-html.light.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge:has(> .mini-game__gauge__black)::before {
-    background: #606060 !important;
-}
-
-html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge .mini-game__gauge__black {
-    position: relative !important;
-    z-index: 1 !important;
-    border-top-left-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
-    border-top-right-radius: var(--bc-liveboard-eval-radius, var(--bc-eval-radius, 0px)) !important;
 }
 
 html.bc-multiboard-page main.analyse.is-relay .box.relay-tour > .study__multiboard .now-playing .mini-game.bc-multiboard-mimic .mini-game__gauge tick {
