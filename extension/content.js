@@ -1035,6 +1035,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   try {
     applySettings(request.settings);
+    if (request.showLiveboardEvaluation && !latestSettings.hideChat && document.querySelector(
+      'main.analyse.is-relay .chat-liveboard .mini-game:not(:has(.mini-game__gauge))'
+    )) {
+      document.dispatchEvent(new Event('bc:show-liveboard-evaluation'));
+    }
     sendResponse({ ok: true });
   } catch (error) {
     reportBoundaryError('runtime.onMessage', error);

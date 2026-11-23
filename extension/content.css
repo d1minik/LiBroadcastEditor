@@ -180,6 +180,16 @@ main.analyse.is-relay .mchat-mod + .vertical-resize {
     display: var(--bc-display-side, flex) !important;
 }
 
+@container bc-settings style(--bc-display-side: none) {
+    main.analyse.is-relay .relay-tour__side:has(> :is(.mchat, .mchat-mod)) {
+        display: var(--bc-display-liveboard, flex) !important;
+
+        & > :not(.mchat, .mchat-mod) {
+            display: none !important;
+        }
+    }
+}
+
 .analyse__clock {
     display: var(--bc-display-main-clocks, flex) !important;
     align-items: center !important;
@@ -739,6 +749,20 @@ html.light .analyse .eval-gauge:has(> .black)::before {
 }
 
 /* Liveboard */
+@media (min-width: 799.3px), (orientation: landscape) {
+    @container bc-settings style(--bc-display-side: none) {
+        main.analyse.is-relay:not(.has-relay-tour):has(> .main-board > .relay-board-player-top)
+            > .relay-tour__side > :is(.mchat, .mchat-mod) {
+            /* The sidebar starts at the main board's upper player bar. */
+            margin-block-start: 0;
+
+            & > .mchat__content.liveboard {
+                padding-block-start: 0 !important;
+            }
+        }
+    }
+}
+
 main.analyse.is-relay .mchat .chat-liveboard,
 main.analyse.is-relay .mchat-mod .chat-liveboard {
     width: 100% !important;

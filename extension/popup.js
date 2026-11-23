@@ -1080,7 +1080,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
 
   const STORAGE_KEYS = [...Object.keys(elements), 'playerOrderList'];
 
-  const notifyActiveTab = (settings) => {
+  const notifyActiveTab = (settings, showLiveboardEvaluation) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const queryError = getRuntimeError('The active tab could not be queried.');
       if (queryError) {
@@ -1091,7 +1091,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
       const activeTab = tabs[0];
       if (!activeTab || activeTab.id === undefined) return;
 
-      chrome.tabs.sendMessage(activeTab.id, { action: 'updateStyles', settings }, () => {
+      chrome.tabs.sendMessage(activeTab.id, { action: 'updateStyles', settings, showLiveboardEvaluation }, () => {
         const messageError = getRuntimeError('Updated settings could not be sent to the active tab.');
         if (!messageError) return;
         if (messageError.message.includes('Receiving end does not exist')) return;
@@ -1108,7 +1108,7 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
   const flushStorageWrite = () => {
     if (!pendingWrite) return;
     clearTimeout(writeTimer);
-    const { settings, revision } = pendingWrite;
+    const { settings, revision, showLiveboardEvaluation } = pendingWrite;
     pendingWrite = null;
     chrome.storage.sync.set(settings, () => {
       const error = getRuntimeError('Settings could not be saved.');
@@ -1118,18 +1118,18 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
         return;
       }
       setSaveStatus('ready', 'Changes saved');
-      notifyActiveTab(settings);
+      notifyActiveTab(settings, showLiveboardEvaluation);
     });
   };
 
-  const saveAndNotify = ({ debounceStorageWrite = false } = {}) => {
+  const saveAndNotify = ({ debounceStorageWrite = false, showLiveboardEvaluation = false } = {}) => {
     refreshControls();
     const settings = collectSettingsFromUi();
-    pendingWrite = { settings, revision: ++editRevision };
+    pendingWrite = { settings, revision: ++editRevision, showLiveboardEvaluation };
     clearTimeout(writeTimer);
     setSaveStatus('saving', 'Saving…');
     if (debounceStorageWrite) {
-      notifyActiveTab(settings);
+      notifyActiveTab(settings, showLiveboardEvaluation);
       writeTimer = setTimeout(flushStorageWrite, STORAGE_WRITE_DEBOUNCE_MS);
     } else {
       flushStorageWrite();
@@ -1220,10 +1220,12 @@ main.analyse.is-relay .mchat-mod .chat-liveboard .mini-game.bc-liveboard-mimic .
   }
 
   for (const key in elements) {
-    elements[key].addEventListener('change', saveAndNotify);
-    if (['text', 'number', 'range', 'color'].includes(elements[key].type)) {
-      elements[key].addEventListener('input', () => {
-        saveAndNotify({ debounceStorageWrite: true });
+    const input = elements[key];
+    const showLiveboardEvaluation = key === 'liveboardEvalBarWidth';
+    input.addEventListener('change', () => saveAndNotify({ showLiveboardEvaluation }));
+    if (['text', 'number', 'range', 'color'].includes(input.type)) {
+      input.addEventListener('input', () => {
+        saveAndNotify({ debounceStorageWrite: true, showLiveboardEvaluation });
       });
     }
   }
